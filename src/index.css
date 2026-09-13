@@ -1,0 +1,20 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/*
+  Token warna via CSS custom properties (pola yang sama dipakai di proyek
+  Laris Snack) — memudahkan penggantian brand identity nanti tanpa
+  menyentuh markup/komponen. Nilai di bawah ini PLACEHOLDER Phase 1.
+*/
+:root {
+  --color-brand: #2f6f4f;
+  --color-brand-fg: #ffffff;
+  --color-surface: #fafaf7;
+  --color-ink: #1b1b18;
+}
+
+body {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+}
