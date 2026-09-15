@@ -1,5 +1,6 @@
-// Tipe inti. Akan tumbuh signifikan di Phase 3 (auth/roles) dan Phase 9
-// (product/service/package) — file ini sengaja masih minimal di Phase 1.
+// Tipe inti. Akan tumbuh signifikan di Phase 4 (roles/protected routes) dan
+// Phase 9 (product/service/package) — file ini sengaja masih minimal.
+import type { Timestamp } from 'firebase/firestore'
 
 export type UserRole = 'customer' | 'seller' | 'admin'
 
@@ -8,5 +9,5 @@ export interface AppUser {
   email: string
   displayName: string
   role: UserRole
-  createdAt: string
+  createdAt: Timestamp
 }

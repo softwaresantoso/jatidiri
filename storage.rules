@@ -1,0 +1,25 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    // Logo & galeri usaha ditampilkan publik di storefront.
+    // TODO Phase 4 (setelah role tersedia untuk dicek di Storage rules):
+    // perketat write agar hanya owner business tsb / admin, bukan
+    // sembarang signed-in user seperti sekarang.
+    match /businesses/{businessId}/logo/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+    match /businesses/{businessId}/gallery/{allPaths=**} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+
+    // Path lain (payment proof, dokumen legalitas) BELUM dibuka di sini —
+    // itu bersifat privat dan ditambahkan saat fitur terkait dibangun
+    // (Phase 5 & Phase 12), dengan rule yang membatasi ke owner + admin saja.
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

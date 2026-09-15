@@ -1,12 +1,18 @@
-// STUB Phase 1 — inisialisasi Firebase (initializeApp, getAuth, getFirestore,
-// getStorage) akan ditulis di Phase 2. File ini hanya memastikan alur env
-// sudah benar sejak sekarang, sesuai .env.example.
+import { initializeApp } from 'firebase/app'
+import { getAuth } from 'firebase/auth'
+import { getFirestore } from 'firebase/firestore'
 
-export const firebaseConfig = {
+// CATATAN: Firebase Storage sengaja TIDAK dipakai (butuh plan Blaze).
+// Upload gambar pakai Cloudinary — lihat src/lib/cloudinary.ts.
+const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
   authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
   projectId: import.meta.env.VITE_FIREBASE_PROJECT_ID,
-  storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
   messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
   appId: import.meta.env.VITE_FIREBASE_APP_ID,
-} as const
+}
+
+const app = initializeApp(firebaseConfig)
+
+export const auth = getAuth(app)
+export const db = getFirestore(app)

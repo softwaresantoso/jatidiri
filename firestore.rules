@@ -1,0 +1,83 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // Lookup role dari users/{uid}. Ini query tambahan per request,
+    // jadi jangan dipanggil berkali-kali dalam satu match block.
+    function getUserRole() {
+      return isSignedIn()
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role
+        : null;
+    }
+
+    function isAdmin() {
+      return getUserRole() == 'admin';
+    }
+
+    // USERS
+    match /users/{userId} {
+      allow read: if isOwner(userId) || isAdmin();
+      // PENTING: batasi role saat create. Tanpa ini, user bisa self-assign
+      // role='admin' langsung lewat Firestore SDK, bukan cuma lewat app kita.
+      allow create: if isOwner(userId)
+        && request.resource.data.role in ['customer', 'seller'];
+      // User boleh update profil sendiri TAPI tidak boleh ganti role sendiri.
+      allow update: if isOwner(userId)
+        && request.resource.data.role == resource.data.role;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // CATEGORIES — dikelola admin, publik boleh baca (dipakai di landing
+    // page & wizard registrasi tanpa perlu login).
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // BUSINESS APPLICATIONS — draft/revisi milik seller sendiri.
+    // Seller tidak bisa loncat status ke approved dari client.
+    match /businessApplications/{applicationId} {
+      allow read: if isSignedIn() &&
+        (resource.data.ownerId == request.auth.uid || isAdmin());
+      allow create: if isSignedIn() &&
+        request.resource.data.ownerId == request.auth.uid &&
+        request.resource.data.status == 'draft';
+      allow update: if isSignedIn() &&
+        resource.data.ownerId == request.auth.uid &&
+        resource.data.status in ['draft', 'revision_required'] &&
+        request.resource.data.status in ['draft', 'submitted'];
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
+    // BUSINESSES — publik hanya boleh baca yang approved. Pemilik & admin
+    // boleh baca miliknya kapan pun. Field sensitif (status, verification,
+    // banking, ownerId) tidak boleh diubah lewat path seller.
+    match /businesses/{businessId} {
+      allow read: if resource.data.status == 'approved' ||
+        (isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdmin()));
+      // Dibuat sistem saat application di-approve admin, bukan langsung oleh seller.
+      allow create: if isAdmin();
+      allow update: if isAdmin() ||
+        (isSignedIn() && resource.data.ownerId == request.auth.uid &&
+         !request.resource.data.diff(resource.data).affectedKeys()
+           .hasAny(['status', 'verification', 'banking', 'ownerId']));
+      allow delete: if isAdmin();
+    }
+
+    // Default deny — collection lain (products, orders, payments, dst.)
+    // ditambahkan eksplisit di fase saat fiturnya dibangun.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

@@ -16,6 +16,7 @@ export const ROUTES = {
   orders: '/pesanan',
   order: (id: string) => `/pesanan/${id}`,
   account: '/account',
+  unauthorized: '/unauthorized',
   sellerDashboard: '/pelaku/dashboard',
   adminDashboard: '/admin/dashboard',
 } as const
