@@ -7,33 +7,8 @@ import { signUpCustomer } from '@/services/auth'
 import { getAuthErrorMessage } from '@/utils/authErrors'
 import { ROUTES } from '@/constants/routes'
 
-type AccountType = 'customer' | 'seller'
-
 export default function RegisterPage() {
   const navigate = useNavigate()
-  const [accountType, setAccountType] = useState<AccountType>('customer')
-
-  if (accountType === 'seller') {
-    return (
-      <section className="mx-auto max-w-md px-4 py-16">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          Daftar sebagai Pelaku Industri
-        </h1>
-        <p className="mt-2 text-ink/70">
-          Wizard pendaftaran usaha (akun, identitas usaha, kategori, lokasi,
-          rekening, legalitas) dibangun di Phase 5. Untuk sekarang, daftar
-          dulu sebagai Pelanggan kalau Anda ingin coba fitur yang sudah ada.
-        </p>
-        <button
-          type="button"
-          onClick={() => setAccountType('customer')}
-          className="mt-4 text-sm text-brand underline"
-        >
-          &larr; Kembali ke pilihan akun
-        </button>
-      </section>
-    )
-  }
 
   return (
     <section className="mx-auto max-w-md px-4 py-16">
@@ -46,13 +21,12 @@ export default function RegisterPage() {
         >
           Pelanggan
         </button>
-        <button
-          type="button"
-          onClick={() => setAccountType('seller')}
-          className="flex-1 rounded-md border border-black/20 px-3 py-2"
+        <Link
+          to={ROUTES.sellerRegister}
+          className="flex flex-1 items-center justify-center rounded-md border border-black/20 px-3 py-2"
         >
           Pelaku Industri
-        </button>
+        </Link>
       </div>
 
       <CustomerRegisterForm onSuccess={() => navigate(ROUTES.home)} />
@@ -95,7 +69,7 @@ function CustomerRegisterForm({ onSuccess }: { onSuccess: () => void }) {
           id="displayName"
           type="text"
           autoComplete="name"
-          className="mt-1 w-full rounded-md border border-black/20 px-3 py-2"
+          className="input mt-1"
           {...register('displayName')}
         />
         {errors.displayName && (
@@ -113,7 +87,7 @@ function CustomerRegisterForm({ onSuccess }: { onSuccess: () => void }) {
           id="email"
           type="email"
           autoComplete="email"
-          className="mt-1 w-full rounded-md border border-black/20 px-3 py-2"
+          className="input mt-1"
           {...register('email')}
         />
         {errors.email && (
@@ -129,7 +103,7 @@ function CustomerRegisterForm({ onSuccess }: { onSuccess: () => void }) {
           id="password"
           type="password"
           autoComplete="new-password"
-          className="mt-1 w-full rounded-md border border-black/20 px-3 py-2"
+          className="input mt-1"
           {...register('password')}
         />
         {errors.password && (
@@ -147,7 +121,7 @@ function CustomerRegisterForm({ onSuccess }: { onSuccess: () => void }) {
           id="confirmPassword"
           type="password"
           autoComplete="new-password"
-          className="mt-1 w-full rounded-md border border-black/20 px-3 py-2"
+          className="input mt-1"
           {...register('confirmPassword')}
         />
         {errors.confirmPassword && (
@@ -159,11 +133,7 @@ function CustomerRegisterForm({ onSuccess }: { onSuccess: () => void }) {
 
       {formError && <p className="text-sm text-red-600">{formError}</p>}
 
-      <button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full rounded-md bg-brand px-4 py-2 font-medium text-brand-fg disabled:opacity-60"
-      >
+      <button type="submit" disabled={isSubmitting} className="btn-primary">
         {isSubmitting ? 'Memproses...' : 'Daftar'}
       </button>
     </form>

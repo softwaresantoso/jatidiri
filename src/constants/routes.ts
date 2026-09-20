@@ -11,6 +11,7 @@ export const ROUTES = {
   store: (slug: string) => `/toko/${slug}`,
   login: '/login',
   register: '/register',
+  sellerRegister: '/pelaku/daftar',
   cart: '/cart',
   checkout: '/checkout',
   orders: '/pesanan',

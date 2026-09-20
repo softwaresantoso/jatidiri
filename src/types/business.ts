@@ -30,6 +30,29 @@ export interface BusinessBanking {
   holderDiffersFromOwner: boolean
 }
 
+export type OfferingType =
+  | 'produk'
+  | 'jasa'
+  | 'mesin'
+  | 'peralatan'
+  | 'paket_bisnis'
+  | 'produk_custom'
+  | 'preorder'
+  | 'lainnya'
+
+export type LegalDocumentStatus =
+  | 'ada'
+  | 'tidak_ada'
+  | 'sedang_proses'
+  | 'tidak_diperlukan'
+
+export interface BusinessLegal {
+  status: LegalDocumentStatus
+  documentTypes?: string[] // NIB, NPWP, dst — dari checklist, bukan hardcode ketat
+  documentNumber?: string
+  documentUrl?: string
+}
+
 export interface BusinessVerification {
   status: BusinessStatus
   submittedAt?: string
@@ -51,33 +74,62 @@ export interface Business {
   email?: string
   logoUrl?: string
   gallery: string[]
+  socialLinks?: { instagram?: string; facebook?: string; tiktok?: string; website?: string }
   primaryCategoryId: string
   additionalCategoryIds: string[]
   address: BusinessAddress
+  offeringTypes: OfferingType[]
+  offeringDescription: string
   banking: BusinessBanking
+  legal: BusinessLegal
   verification: BusinessVerification
   status: BusinessStatus
   createdAt: string
   updatedAt: string
 }
 
-// Bentuk data selama wizard registrasi (Phase 5) — belum tentu lengkap,
-// makanya sebagian besar field opsional dibanding Business.
+// Bentuk data selama wizard registrasi (Phase 5) — sengaja sebagian besar
+// field opsional (data terisi bertahap per step, bukan sekaligus).
 export interface BusinessApplication {
   id: string
   ownerId: string
+
+  // Step 1 — Akun Pengelola (posisi orang yang daftar, bukan role sistem)
+  managerPosition?: 'pemilik' | 'pengelola' | 'admin_usaha'
+  whatsapp?: string
+
+  // Step 2 — Identitas Usaha
   businessName?: string
   ownerName?: string
-  description?: string
   establishedYear?: number
-  phone?: string
-  email?: string
+  description?: string
+  businessPhone?: string
+  businessEmail?: string
   logoUrl?: string
   gallery?: string[]
+  socialLinks?: { instagram?: string; facebook?: string; tiktok?: string; website?: string }
+
+  // Step 3 — Kategori
   primaryCategoryId?: string
   additionalCategoryIds?: string[]
+
+  // Step 4 — Lokasi
   address?: Partial<BusinessAddress>
+
+  // Step 5 — Produk/Layanan
+  offeringTypes?: OfferingType[]
+  offeringDescription?: string
+
+  // Step 6 — Rekening
   banking?: Partial<BusinessBanking>
+
+  // Step 7 — Legalitas
+  legal?: BusinessLegal
+
+  // Step 8 — Persetujuan
+  agreementAccepted?: boolean
+  agreedAt?: string
+
   status: BusinessStatus
   submittedAt?: string
   reviewedAt?: string

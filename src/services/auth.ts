@@ -22,6 +22,22 @@ export async function signUpCustomer(
   return credential.user
 }
 
+// Dipakai di Step 1 wizard registrasi Pelaku Industri, kalau user belum
+// punya akun sama sekali. role='seller' di sini HANYA menandai "sedang
+// mendaftar sebagai pelaku industri" — bukan berarti sudah approved.
+// Akses dashboard seller (RequireRole) tetap perlu dicek status
+// businessApplications-nya di Phase 6/7.
+export async function signUpSeller(
+  email: string,
+  password: string,
+  displayName: string,
+) {
+  const credential = await createUserWithEmailAndPassword(auth, email, password)
+  await updateProfile(credential.user, { displayName })
+  await createUserDocument(credential.user.uid, email, displayName, 'seller')
+  return credential.user
+}
+
 async function createUserDocument(
   uid: string,
   email: string,

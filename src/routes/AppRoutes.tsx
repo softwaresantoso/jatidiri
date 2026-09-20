@@ -4,6 +4,7 @@ import HomePage from '@/pages/HomePage'
 import ExplorePage from '@/pages/ExplorePage'
 import LoginPage from '@/pages/LoginPage'
 import RegisterPage from '@/pages/RegisterPage'
+import SellerRegisterPage from '@/pages/SellerRegisterPage'
 import AccountPage from '@/pages/AccountPage'
 import SellerDashboardPage from '@/pages/SellerDashboardPage'
 import AdminDashboardPage from '@/pages/AdminDashboardPage'
@@ -20,6 +21,7 @@ export default function AppRoutes() {
         <Route path="/explore" element={<ExplorePage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
+        <Route path="/pelaku/daftar" element={<SellerRegisterPage />} />
         <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
         {/* Butuh login, role apapun */}

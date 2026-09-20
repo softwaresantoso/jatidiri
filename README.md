@@ -19,6 +19,13 @@ login), `/pelaku/dashboard` (role seller), `/admin/dashboard` (role admin)
 sudah dibatasi lewat `RequireRole`, redirect ke `/login` (dengan
 kembali-ke-halaman-semula) atau `/unauthorized` sesuai kasus. Isi
 dashboard-nya sendiri masih placeholder kosong — itu Phase 6/7.
+Phase 5 — Seller registration: selesai. Wizard 9 langkah di
+`/pelaku/daftar` (akun → identitas usaha → kategori → lokasi → penawaran
+→ rekening → legalitas → persetujuan → review), tersimpan bertahap ke
+`businessApplications` di tiap "Lanjut" (bukan cuma di submit akhir), dan
+bisa di-resume kalau browser ditutup di tengah jalan. Lihat "Simplifikasi
+Phase 5" di bawah untuk apa yang sengaja belum dibangun persis seperti
+brief asli.
 
 ## Tech stack
 
@@ -118,6 +125,21 @@ project upgrade ke Blaze), tapi TIDAK di-deploy dan tidak dipakai sekarang.
    - Max file size: sesuaikan (mis. 2 MB) supaya kuota 25 credit/bulan awet
 3. Salin "Cloud name" (di Dashboard utama) dan nama upload preset ke `.env`:
    `VITE_CLOUDINARY_CLOUD_NAME`, `VITE_CLOUDINARY_UPLOAD_PRESET`.
+4. Buat SATU preset lagi khusus dokumen legalitas (dipakai di Phase 5):
+   Signing Mode = Unsigned, Folder = `jatidiri/documents`, Allowed formats
+   = `jpg, png, pdf`. Salin nama presetnya ke `.env`:
+   `VITE_CLOUDINARY_DOCUMENT_PRESET`.
+
+**Soal privasi dokumen legalitas:** URL Cloudinary yang dihasilkan tetap
+bersifat publik (bisa diakses siapa saja yang tahu URL-nya) karena preset
+unsigned tidak punya mode "private" tanpa backend untuk sign request.
+Mitigasinya: (1) Cloudinary otomatis bikin ID file acak/tidak mudah
+ditebak, (2) URL-nya cuma pernah muncul di dokumen `businessApplications`
+yang dibatasi `firestore.rules` (cuma pemilik & admin yang bisa baca).
+Ini bukan private-by-design sungguhan — kalau URL-nya bocor lewat cara
+lain (screenshot, share link, dst.), file tetap bisa diakses. Upgrade
+path kalau ini jadi masalah nyata: Blaze + Cloud Function untuk signed
+URL, atau Cloudflare Worker sebagai proxy.
 
 **Risiko yang perlu disadari:** karena presetnya unsigned, siapa pun yang
 tahu cloud name + preset name (keduanya kelihatan di network request
@@ -141,7 +163,31 @@ Ini aman dilakukan karena akses Firestore Console memakai izin Google
 Cloud (IAM) Anda sendiri, bukan lewat `firestore.rules` — jadi tidak
 membuka celah untuk user lain.
 
+## Simplifikasi Phase 5 (dibanding brief asli)
+
+Ini keputusan sadar untuk menjaga scope tetap terkelola — bukan bug:
+
+- **Checkbox "alamat usaha sama dengan alamat pemilik" (brief Section 4)
+  di-skip.** Brief tidak pernah mendefinisikan field "alamat pemilik" di
+  tempat lain, jadi checkbox ini tidak ada yang bisa disalin.
+- **Belum ada upgrade akun Pelanggan → Pelaku Industri.** Wizard cuma
+  mendukung akun baru. Kalau user yang sudah login coba akses
+  `/pelaku/daftar`, mereka diminta logout dulu. Alasannya: firestore.rules
+  sengaja tidak membolehkan user self-upgrade role (mencegah privilege
+  escalation) — upgrade akun butuh alur approval terpisah yang belum
+  dibangun.
+- **Dokumen legalitas cuma 1 file per pengajuan**, bukan multi-dokumen
+  per jenis legalitas seperti tersirat di brief. Cukup untuk MVP; bisa
+  diperluas jadi array kalau dibutuhkan.
+- Role user langsung jadi `seller` sejak akun dibuat di Step 1 (bukan
+  baru berubah dari `customer` setelah admin approve) — konsisten dengan
+  `firestore.rules` yang sudah ada (create boleh role='seller', tapi
+  TIDAK boleh role='admin'). Yang membedakan seller "aktif" vs "masih
+  pending" adalah status `businessApplications`/`businesses`, bukan
+  field role itu sendiri.
+
 ## Fase berikutnya
 
-Phase 5 — Seller registration (wizard 9 langkah: akun, identitas usaha,
-kategori, lokasi, penawaran, rekening, legalitas, persetujuan, review).
+Phase 6 — Admin seller verification (halaman review aplikasi di
+`/admin/pelaku/:id`, approve/reject/request-revision, yang approve akan
+membuat dokumen `businesses/{id}` dari data `businessApplications`).
