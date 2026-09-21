@@ -19,6 +19,7 @@ export const ROUTES = {
   account: '/account',
   unauthorized: '/unauthorized',
   sellerDashboard: '/pelaku/dashboard',
+  sellerStore: '/pelaku/toko',
   adminDashboard: '/admin/dashboard',
   adminApplications: '/admin/pelaku',
   adminApplicationDetail: (id: string) => `/admin/pelaku/${id}`,

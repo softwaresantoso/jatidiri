@@ -7,6 +7,7 @@ import RegisterPage from '@/pages/RegisterPage'
 import SellerRegisterPage from '@/pages/SellerRegisterPage'
 import AccountPage from '@/pages/AccountPage'
 import SellerDashboardPage from '@/pages/SellerDashboardPage'
+import SellerStoreProfilePage from '@/pages/SellerStoreProfilePage'
 import AdminDashboardPage from '@/pages/AdminDashboardPage'
 import AdminApplicationsListPage from '@/pages/AdminApplicationsListPage'
 import AdminApplicationDetailPage from '@/pages/AdminApplicationDetailPage'
@@ -42,6 +43,14 @@ export default function AppRoutes() {
           element={
             <RequireRole allowedRoles={['seller']}>
               <SellerDashboardPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/pelaku/toko"
+          element={
+            <RequireRole allowedRoles={['seller']}>
+              <SellerStoreProfilePage />
             </RequireRole>
           }
         />

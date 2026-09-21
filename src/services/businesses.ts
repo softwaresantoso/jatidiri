@@ -1,16 +1,18 @@
 import {
   collection,
   doc,
+  getDoc,
   getDocs,
   limit,
   query,
   serverTimestamp,
+  updateDoc,
   where,
   writeBatch,
 } from 'firebase/firestore'
 import { db } from '@/lib/firebase'
 import { slugify } from '@/utils/slugify'
-import type { BusinessApplication } from '@/types/business'
+import type { Business, BusinessApplication } from '@/types/business'
 
 async function slugExists(slug: string): Promise<boolean> {
   const q = query(collection(db, 'businesses'), where('slug', '==', slug), limit(1))
@@ -84,4 +86,42 @@ export async function approveApplication(
 
   await batch.commit()
   return businessRef.id
+}
+
+// --- Seller: profil toko sendiri ---
+
+// Single equality filter saja (ownerId) — tidak butuh composite index.
+export async function getMyBusiness(uid: string): Promise<Business | null> {
+  const q = query(collection(db, 'businesses'), where('ownerId', '==', uid), limit(1))
+  const snapshot = await getDocs(q)
+  if (snapshot.empty) return null
+  const docSnap = snapshot.docs[0]
+  return { id: docSnap.id, ...docSnap.data() } as Business
+}
+
+export async function getBusinessById(id: string): Promise<Business | null> {
+  const snap = await getDoc(doc(db, 'businesses', id))
+  if (!snap.exists()) return null
+  return { id: snap.id, ...snap.data() } as Business
+}
+
+// Field yang boleh diedit seller sendiri lewat halaman Profil Toko.
+// TIDAK termasuk status/verification/banking/ownerId — itu memang
+// sengaja diblokir di firestore.rules juga (pertahanan berlapis, bukan
+// cuma mengandalkan UI ini).
+export interface StoreProfilePatch {
+  businessName?: string
+  description?: string
+  phone?: string
+  email?: string
+  logoUrl?: string
+  gallery?: string[]
+  socialLinks?: { instagram?: string; facebook?: string; tiktok?: string; website?: string }
+}
+
+export async function updateStoreProfile(businessId: string, patch: StoreProfilePatch) {
+  await updateDoc(doc(db, 'businesses', businessId), {
+    ...patch,
+    updatedAt: serverTimestamp(),
+  })
 }

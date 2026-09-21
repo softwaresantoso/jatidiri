@@ -32,6 +32,15 @@ Approve/Tolak/Minta Revisi). Approve membuat dokumen `businesses/{id}`
 dari data aplikasi lewat batch write atomik (businesses + update
 businessApplications sekaligus, gagal bareng kalau salah satu gagal).
 Tolak & Minta Revisi wajib diisi alasan/catatan.
+Phase 7 — Seller dashboard: selesai (versi realistis). `/pelaku/dashboard`
+sekarang mengecek status pendaftaran sungguhan (draft/revision_required →
+arahkan lanjutkan wizard, submitted/under_review → "menunggu verifikasi",
+rejected → tampilkan alasan, approved → tampilkan profil toko + overview).
+`/pelaku/toko` untuk edit profil toko (logo, deskripsi, kontak, sosial
+media) yang menulis langsung ke `businesses/{id}`. Kartu "Kelola
+Produk/Jasa/Paket/Pesanan" masih ditandai "Segera hadir" — itu jujur
+menunggu Phase 9 & 10+, saya tidak buat data/UI palsu untuk itu di fase
+ini.
 
 ## Tech stack
 
@@ -194,8 +203,7 @@ Ini keputusan sadar untuk menjaga scope tetap terkelola — bukan bug:
 
 ## Fase berikutnya
 
-Phase 7 — Seller dashboard (isi asli dari `/pelaku/dashboard`: overview,
-kelola produk/jasa/paket, kelola pesanan — sekarang baru placeholder).
-Dashboard ini juga perlu mengecek status `businesses` milik seller
-(approved/belum) untuk membedakan tampilan "toko aktif" vs "masih
-menunggu verifikasi".
+Phase 8 — Marketplace (halaman publik `/explore`, `/kategori/:slug`,
+`/toko/:slug` yang sungguhan menampilkan data dari Firestore — sekarang
+`/explore` masih placeholder statis). Search & filter dasar juga di fase
+ini.
