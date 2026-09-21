@@ -26,6 +26,12 @@ Phase 5 — Seller registration: selesai. Wizard 9 langkah di
 bisa di-resume kalau browser ditutup di tengah jalan. Lihat "Simplifikasi
 Phase 5" di bawah untuk apa yang sengaja belum dibangun persis seperti
 brief asli.
+Phase 6 — Admin seller verification: selesai. `/admin/pelaku` (antrian
+pendaftaran menunggu review) dan `/admin/pelaku/:id` (detail lengkap +
+Approve/Tolak/Minta Revisi). Approve membuat dokumen `businesses/{id}`
+dari data aplikasi lewat batch write atomik (businesses + update
+businessApplications sekaligus, gagal bareng kalau salah satu gagal).
+Tolak & Minta Revisi wajib diisi alasan/catatan.
 
 ## Tech stack
 
@@ -188,6 +194,8 @@ Ini keputusan sadar untuk menjaga scope tetap terkelola — bukan bug:
 
 ## Fase berikutnya
 
-Phase 6 — Admin seller verification (halaman review aplikasi di
-`/admin/pelaku/:id`, approve/reject/request-revision, yang approve akan
-membuat dokumen `businesses/{id}` dari data `businessApplications`).
+Phase 7 — Seller dashboard (isi asli dari `/pelaku/dashboard`: overview,
+kelola produk/jasa/paket, kelola pesanan — sekarang baru placeholder).
+Dashboard ini juga perlu mengecek status `businesses` milik seller
+(approved/belum) untuk membedakan tampilan "toko aktif" vs "masih
+menunggu verifikasi".

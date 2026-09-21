@@ -8,6 +8,8 @@ import SellerRegisterPage from '@/pages/SellerRegisterPage'
 import AccountPage from '@/pages/AccountPage'
 import SellerDashboardPage from '@/pages/SellerDashboardPage'
 import AdminDashboardPage from '@/pages/AdminDashboardPage'
+import AdminApplicationsListPage from '@/pages/AdminApplicationsListPage'
+import AdminApplicationDetailPage from '@/pages/AdminApplicationDetailPage'
 import UnauthorizedPage from '@/pages/UnauthorizedPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import { RequireRole } from '@/components/auth/RequireRole'
@@ -48,6 +50,22 @@ export default function AppRoutes() {
           element={
             <RequireRole allowedRoles={['admin']}>
               <AdminDashboardPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/admin/pelaku"
+          element={
+            <RequireRole allowedRoles={['admin']}>
+              <AdminApplicationsListPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/admin/pelaku/:id"
+          element={
+            <RequireRole allowedRoles={['admin']}>
+              <AdminApplicationDetailPage />
             </RequireRole>
           }
         />

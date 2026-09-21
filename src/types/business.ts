@@ -1,4 +1,10 @@
+import type { Timestamp } from 'firebase/firestore'
+
 // Tipe untuk businesses & businessApplications.
+// PENTING: field waktu (submittedAt, reviewedAt, createdAt, updatedAt) ditulis
+// via serverTimestamp() -> saat dibaca balik itu objek Firestore `Timestamp`,
+// BUKAN string. `agreedAt` beda sendiri (ditulis via new Date().toISOString()
+// di client, jadi memang string).
 // State machine status DISATUKAN (resolusi kontradiksi Section 20 vs 37
 // di brief asli): draft -> submitted -> under_review -> approved |
 // revision_required | rejected, lalu approved -> suspended terpisah.
@@ -55,8 +61,8 @@ export interface BusinessLegal {
 
 export interface BusinessVerification {
   status: BusinessStatus
-  submittedAt?: string
-  reviewedAt?: string
+  submittedAt?: Timestamp
+  reviewedAt?: Timestamp
   reviewedBy?: string
   rejectionReason?: string
   revisionNote?: string
@@ -84,8 +90,8 @@ export interface Business {
   legal: BusinessLegal
   verification: BusinessVerification
   status: BusinessStatus
-  createdAt: string
-  updatedAt: string
+  createdAt: Timestamp
+  updatedAt: Timestamp
 }
 
 // Bentuk data selama wizard registrasi (Phase 5) — sengaja sebagian besar
@@ -131,11 +137,12 @@ export interface BusinessApplication {
   agreedAt?: string
 
   status: BusinessStatus
-  submittedAt?: string
-  reviewedAt?: string
+  submittedAt?: Timestamp
+  reviewedAt?: Timestamp
   reviewedBy?: string
   rejectionReason?: string
   revisionNote?: string
-  createdAt: string
-  updatedAt: string
+  businessId?: string // terisi setelah admin approve — id dokumen businesses/{id}
+  createdAt: Timestamp
+  updatedAt: Timestamp
 }

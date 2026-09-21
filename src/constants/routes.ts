@@ -20,4 +20,6 @@ export const ROUTES = {
   unauthorized: '/unauthorized',
   sellerDashboard: '/pelaku/dashboard',
   adminDashboard: '/admin/dashboard',
+  adminApplications: '/admin/pelaku',
+  adminApplicationDetail: (id: string) => `/admin/pelaku/${id}`,
 } as const
