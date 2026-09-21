@@ -41,6 +41,11 @@ media) yang menulis langsung ke `businesses/{id}`. Kartu "Kelola
 Produk/Jasa/Paket/Pesanan" masih ditandai "Segera hadir" — itu jujur
 menunggu Phase 9 & 10+, saya tidak buat data/UI palsu untuk itu di fase
 ini.
+Phase 8 — Marketplace: selesai. `/explore` (semua usaha approved +
+pencarian nama + filter kategori, semuanya di client setelah satu fetch),
+`/kategori/:slug`, `/toko/:slug` (storefront publik per usaha), dan Home
+sekarang menampilkan "Pelaku Industri Pilihan". Semua bisa diakses tanpa
+login. Lihat "Catatan teknis Phase 8" di bawah soal keputusan query.
 
 ## Tech stack
 
@@ -203,7 +208,21 @@ Ini keputusan sadar untuk menjaga scope tetap terkelola — bukan bug:
 
 ## Fase berikutnya
 
-Phase 8 — Marketplace (halaman publik `/explore`, `/kategori/:slug`,
-`/toko/:slug` yang sungguhan menampilkan data dari Firestore — sekarang
-`/explore` masih placeholder statis). Search & filter dasar juga di fase
-ini.
+Phase 9 — Products/services/packages (entity `products`, `services`,
+`businessPackages` + CRUD di dashboard seller, ditampilkan di storefront
+yang sekarang masih placeholder "Belum ada produk").
+
+## Catatan teknis Phase 8
+
+Setelah 3x kena bug composite index di fase-fase sebelumnya
+(businessApplications, categories), Phase 8 SENGAJA didesain supaya
+tidak butuh index baru sama sekali:
+
+- `getApprovedBusinesses()` cuma satu `where('status','==','approved')`,
+  tanpa `orderBy`. Sortir nama & filter kategori/pencarian dilakukan di
+  JavaScript setelah data ke-fetch, bukan di query Firestore.
+- Ini artinya SELURUH data usaha approved ke-download tiap buka
+  `/explore` — baik-baik saja untuk puluhan/ratusan usaha, tapi kalau
+  nanti sudah ribuan, ini titik yang perlu diganti (pagination atau
+  migrasi ke search engine seperti brief section 27 sarankan).
+- Tidak ada `firestore.indexes.json` baru di fase ini.

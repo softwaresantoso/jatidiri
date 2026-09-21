@@ -2,6 +2,8 @@ import { Route, Routes } from 'react-router-dom'
 import MainLayout from '@/layouts/MainLayout'
 import HomePage from '@/pages/HomePage'
 import ExplorePage from '@/pages/ExplorePage'
+import CategoryPage from '@/pages/CategoryPage'
+import StorefrontPage from '@/pages/StorefrontPage'
 import LoginPage from '@/pages/LoginPage'
 import RegisterPage from '@/pages/RegisterPage'
 import SellerRegisterPage from '@/pages/SellerRegisterPage'
@@ -22,6 +24,8 @@ export default function AppRoutes() {
         {/* Publik */}
         <Route path="/" element={<HomePage />} />
         <Route path="/explore" element={<ExplorePage />} />
+        <Route path="/kategori/:slug" element={<CategoryPage />} />
+        <Route path="/toko/:slug" element={<StorefrontPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/pelaku/daftar" element={<SellerRegisterPage />} />

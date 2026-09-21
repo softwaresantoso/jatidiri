@@ -125,3 +125,31 @@ export async function updateStoreProfile(businessId: string, patch: StoreProfile
     updatedAt: serverTimestamp(),
   })
 }
+
+// --- Publik (marketplace) ---
+
+// SENGAJA cuma satu filter (status=='approved'), tanpa orderBy atau where
+// kedua — supaya TIDAK butuh composite index sama sekali. Filter kategori
+// & pencarian nama dilakukan di JS setelah fetch, bukan di query.
+// Cukup untuk skala MVP; kalau nanti approved business sudah ratusan,
+// ini titik yang perlu diganti strategi (lihat brief section 27 soal
+// migrasi ke Algolia/Typesense).
+export async function getApprovedBusinesses(): Promise<Business[]> {
+  const q = query(collection(db, 'businesses'), where('status', '==', 'approved'))
+  const snapshot = await getDocs(q)
+  const businesses = snapshot.docs.map(
+    (docSnap) => ({ id: docSnap.id, ...docSnap.data() }) as Business,
+  )
+  return businesses.sort((a, b) => a.businessName.localeCompare(b.businessName))
+}
+
+// Single equality filter (slug) — status='approved' dicek di kode, bukan
+// di query, supaya tetap satu filter saja.
+export async function getBusinessBySlug(slug: string): Promise<Business | null> {
+  const q = query(collection(db, 'businesses'), where('slug', '==', slug), limit(1))
+  const snapshot = await getDocs(q)
+  if (snapshot.empty) return null
+  const docSnap = snapshot.docs[0]
+  const business = { id: docSnap.id, ...docSnap.data() } as Business
+  return business.status === 'approved' ? business : null
+}
