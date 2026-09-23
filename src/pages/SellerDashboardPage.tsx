@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { getMyOpenApplication } from '@/services/businessApplications'
 import { getBusinessById } from '@/services/businesses'
 import { getMyProducts } from '@/services/products'
+import { getMyServices } from '@/services/services'
 import type { BusinessApplication, Business } from '@/types/business'
 import { ROUTES } from '@/constants/routes'
 
@@ -15,6 +16,7 @@ export default function SellerDashboardPage() {
   const [application, setApplication] = useState<BusinessApplication | null>(null)
   const [business, setBusiness] = useState<Business | null>(null)
   const [productCount, setProductCount] = useState(0)
+  const [serviceCount, setServiceCount] = useState(0)
 
   useEffect(() => {
     if (!firebaseUser) return
@@ -31,12 +33,14 @@ export default function SellerDashboardPage() {
       } else if (app.status === 'rejected') {
         setView('rejected')
       } else if (app.status === 'approved' && app.businessId) {
-        const [biz, products] = await Promise.all([
+        const [biz, products, services] = await Promise.all([
           getBusinessById(app.businessId),
           getMyProducts(firebaseUser.uid),
+          getMyServices(firebaseUser.uid),
         ])
         setBusiness(biz)
         setProductCount(products.filter((p) => p.status !== 'archived').length)
+        setServiceCount(services.filter((s) => s.status !== 'archived').length)
         setView('active')
       }
     })
@@ -136,7 +140,13 @@ export default function SellerDashboardPage() {
           <p className="font-medium">Kelola Produk</p>
           <p className="text-sm text-ink/60">{productCount} produk</p>
         </Link>
-        <ComingSoonCard title="Kelola Jasa" note="menyusul" />
+        <Link
+          to={ROUTES.sellerServices}
+          className="rounded-md border border-black/10 p-4 hover:bg-black/5"
+        >
+          <p className="font-medium">Kelola Jasa</p>
+          <p className="text-sm text-ink/60">{serviceCount} jasa</p>
+        </Link>
         <ComingSoonCard title="Kelola Pesanan" note="Phase 10+" />
       </div>
     </div>

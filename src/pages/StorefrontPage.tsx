@@ -3,15 +3,18 @@ import { useParams } from 'react-router-dom'
 import { getBusinessBySlug } from '@/services/businesses'
 import { getActiveCategories } from '@/services/categories'
 import { getApprovedProductsByBusiness } from '@/services/products'
+import { getApprovedServicesByBusiness } from '@/services/services'
 import type { Business } from '@/types/business'
 import type { Category } from '@/types/category'
 import type { Product } from '@/types/product'
+import type { Service } from '@/types/service'
 
 export default function StorefrontPage() {
   const { slug } = useParams<{ slug: string }>()
   const [business, setBusiness] = useState<Business | null | undefined>(undefined)
   const [categories, setCategories] = useState<Category[]>([])
   const [products, setProducts] = useState<Product[]>([])
+  const [services, setServices] = useState<Service[]>([])
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -21,12 +24,14 @@ export default function StorefrontPage() {
         setBusiness(biz)
         if (!biz) return
         document.title = `${biz.businessName} — JATIDIRI`
-        const [cats, prods] = await Promise.all([
+        const [cats, prods, svcs] = await Promise.all([
           getActiveCategories(),
           getApprovedProductsByBusiness(biz.id),
+          getApprovedServicesByBusiness(biz.id),
         ])
         setCategories(cats)
         setProducts(prods)
+        setServices(svcs)
       })
       .catch((err: unknown) => {
         console.error('Gagal memuat toko:', err)
@@ -127,6 +132,34 @@ export default function StorefrontPage() {
                 )}
                 <p className="mt-2 truncate text-sm font-medium">{p.name}</p>
                 <p className="text-sm text-ink/60">Rp{p.price.toLocaleString('id-ID')}</p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <div className="mt-8">
+        <h2 className="text-sm font-medium text-ink/60">Jasa</h2>
+        {services.length === 0 ? (
+          <div className="mt-2 rounded-md border border-dashed border-black/20 p-4 text-center text-ink/40">
+            Belum ada jasa aktif dari toko ini.
+          </div>
+        ) : (
+          <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {services.map((s) => (
+              <div key={s.id} className="rounded-md border border-black/10 p-3">
+                {s.images?.[0] && (
+                  <img
+                    src={s.images[0]}
+                    alt={s.name}
+                    className="h-24 w-full rounded object-cover"
+                  />
+                )}
+                <p className="mt-2 truncate text-sm font-medium">{s.name}</p>
+                <p className="text-sm text-ink/60">
+                  {s.pricingType === 'quotation'
+                    ? 'Hubungi untuk penawaran'
+                    : `Mulai Rp${(s.startingPrice ?? 0).toLocaleString('id-ID')}`}
+                </p>
               </div>
             ))}
           </div>

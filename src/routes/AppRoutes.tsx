@@ -12,10 +12,13 @@ import SellerDashboardPage from '@/pages/SellerDashboardPage'
 import SellerStoreProfilePage from '@/pages/SellerStoreProfilePage'
 import SellerProductsPage from '@/pages/SellerProductsPage'
 import SellerProductFormPage from '@/pages/SellerProductFormPage'
+import SellerServicesPage from '@/pages/SellerServicesPage'
+import SellerServiceFormPage from '@/pages/SellerServiceFormPage'
 import AdminDashboardPage from '@/pages/AdminDashboardPage'
 import AdminApplicationsListPage from '@/pages/AdminApplicationsListPage'
 import AdminApplicationDetailPage from '@/pages/AdminApplicationDetailPage'
 import AdminProductsListPage from '@/pages/AdminProductsListPage'
+import AdminServicesListPage from '@/pages/AdminServicesListPage'
 import UnauthorizedPage from '@/pages/UnauthorizedPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import { RequireRole } from '@/components/auth/RequireRole'
@@ -86,6 +89,30 @@ export default function AppRoutes() {
           }
         />
         <Route
+          path="/pelaku/jasa"
+          element={
+            <RequireRole allowedRoles={['seller']}>
+              <SellerServicesPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/pelaku/jasa/baru"
+          element={
+            <RequireRole allowedRoles={['seller']}>
+              <SellerServiceFormPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/pelaku/jasa/:id/edit"
+          element={
+            <RequireRole allowedRoles={['seller']}>
+              <SellerServiceFormPage />
+            </RequireRole>
+          }
+        />
+        <Route
           path="/admin/dashboard"
           element={
             <RequireRole allowedRoles={['admin']}>
@@ -114,6 +141,14 @@ export default function AppRoutes() {
           element={
             <RequireRole allowedRoles={['admin']}>
               <AdminProductsListPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/admin/jasa"
+          element={
+            <RequireRole allowedRoles={['admin']}>
+              <AdminServicesListPage />
             </RequireRole>
           }
         />

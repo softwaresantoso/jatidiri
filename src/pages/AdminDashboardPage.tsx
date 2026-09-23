@@ -2,11 +2,13 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { getApplicationsForReview } from '@/services/businessApplications'
 import { getProductsForReview } from '@/services/products'
+import { getServicesForReview } from '@/services/services'
 import { ROUTES } from '@/constants/routes'
 
 export default function AdminDashboardPage() {
   const [pendingApps, setPendingApps] = useState<number | null>(null)
   const [pendingProducts, setPendingProducts] = useState<number | null>(null)
+  const [pendingServices, setPendingServices] = useState<number | null>(null)
 
   useEffect(() => {
     getApplicationsForReview()
@@ -15,6 +17,9 @@ export default function AdminDashboardPage() {
     getProductsForReview()
       .then((products) => setPendingProducts(products.length))
       .catch(() => setPendingProducts(null))
+    getServicesForReview()
+      .then((services) => setPendingServices(services.length))
+      .catch(() => setPendingServices(null))
   }, [])
 
   return (
@@ -48,6 +53,21 @@ export default function AdminDashboardPage() {
           {!!pendingProducts && (
             <span className="rounded-full bg-brand px-3 py-1 text-sm text-brand-fg">
               {pendingProducts} baru
+            </span>
+          )}
+        </Link>
+
+        <Link
+          to={ROUTES.adminServices}
+          className="flex items-center justify-between rounded-md border border-black/10 p-4 hover:bg-black/5"
+        >
+          <div>
+            <p className="font-medium">Moderasi Jasa</p>
+            <p className="text-sm text-ink/60">Review jasa baru dari seller</p>
+          </div>
+          {!!pendingServices && (
+            <span className="rounded-full bg-brand px-3 py-1 text-sm text-brand-fg">
+              {pendingServices} baru
             </span>
           )}
         </Link>

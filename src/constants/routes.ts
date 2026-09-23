@@ -23,8 +23,12 @@ export const ROUTES = {
   sellerProducts: '/pelaku/produk',
   sellerProductNew: '/pelaku/produk/baru',
   sellerProductEdit: (id: string) => `/pelaku/produk/${id}/edit`,
+  sellerServices: '/pelaku/jasa',
+  sellerServiceNew: '/pelaku/jasa/baru',
+  sellerServiceEdit: (id: string) => `/pelaku/jasa/${id}/edit`,
   adminDashboard: '/admin/dashboard',
   adminApplications: '/admin/pelaku',
   adminApplicationDetail: (id: string) => `/admin/pelaku/${id}`,
   adminProducts: '/admin/produk',
+  adminServices: '/admin/jasa',
 } as const

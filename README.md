@@ -46,17 +46,18 @@ pencarian nama + filter kategori, semuanya di client setelah satu fetch),
 `/kategori/:slug`, `/toko/:slug` (storefront publik per usaha), dan Home
 sekarang menampilkan "Pelaku Industri Pilihan". Semua bisa diakses tanpa
 login. Lihat "Catatan teknis Phase 8" di bawah soal keputusan query.
-Phase 9 — Products: selesai (Services & Business Packages menyusul
-sebagai increment terpisah — pattern-nya sama, jadi seharusnya lebih
-cepat). Seller: `/pelaku/produk` (list + tambah/edit/ajukan/arsipkan),
-form single-page (bukan wizard, produk lebih sederhana dari registrasi
-usaha). Admin: `/admin/produk` (moderasi, approve/tolak). Storefront
-sekarang menampilkan produk approved sungguhan. State produk
-disederhanakan jadi 5 (draft/submitted/approved/rejected/archived) dari
-6 di brief asli — 'approved' langsung berarti tampil publik, tidak ada
-state 'published' terpisah. Edit rutin (harga/stok) TIDAK perlu
-moderasi ulang selama status tidak berubah — cuma produk baru/revisi
-yang lewat antrian admin.
+Phase 9 — Products & Services: selesai (Business Packages tetap
+di-skip sesuai keputusan awal). Seller: `/pelaku/produk` dan
+`/pelaku/jasa` (list + tambah/edit/ajukan/arsipkan), form single-page
+(bukan wizard). Admin: `/admin/produk` dan `/admin/jasa` (moderasi,
+approve/tolak). Storefront menampilkan produk & jasa approved
+sungguhan. State disederhanakan jadi 5
+(draft/submitted/approved/rejected/archived) dari 6 di brief asli —
+'approved' langsung berarti tampil publik. Edit rutin (harga/stok)
+TIDAK perlu moderasi ulang selama status tidak berubah — cuma
+produk/jasa baru/revisi yang lewat antrian admin. Services dibangun
+sebagai copy hampir 1:1 dari pattern Products (collection, rules, UI)
+— tidak ada kejutan teknis baru di increment ini.
 
 ## Tech stack
 
@@ -219,9 +220,10 @@ Ini keputusan sadar untuk menjaga scope tetap terkelola — bukan bug:
 
 ## Fase berikutnya
 
-Services (entity `services` + CRUD seller + moderasi admin) — struktur
-hampir identik dengan Products, jadi increment ini seharusnya jauh lebih
-cepat. Setelah itu lanjut Phase 10 — Cart.
+Phase 10 — Cart. Aturan penting dari brief: cart single-vendor saja
+(kalau customer coba tambah produk dari toko lain, tampilkan dialog
+"kosongkan keranjang atau batal" — bukan multi-vendor cart, itu di luar
+MVP).
 
 ## Catatan teknis Phase 8
 
