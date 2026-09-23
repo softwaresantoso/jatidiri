@@ -145,11 +145,21 @@ export async function getApprovedBusinesses(): Promise<Business[]> {
 
 // Single equality filter (slug) — status='approved' dicek di kode, bukan
 // di query, supaya tetap satu filter saja.
+// PENTING: filter status='approved' HARUS ada di query itu sendiri, bukan
+// cuma dicek di kode setelah fetch. Firestore menolak SELURUH query kalau
+// strukturnya bisa saja mengembalikan dokumen yang gagal security rule
+// (di sini: bisnis yang belum approved) — beda dari get() dokumen tunggal
+// yang rule-nya dicek per-dokumen. Ini baru ketahuan lewat error nyata di
+// storefront publik.
 export async function getBusinessBySlug(slug: string): Promise<Business | null> {
-  const q = query(collection(db, 'businesses'), where('slug', '==', slug), limit(1))
+  const q = query(
+    collection(db, 'businesses'),
+    where('slug', '==', slug),
+    where('status', '==', 'approved'),
+    limit(1),
+  )
   const snapshot = await getDocs(q)
   if (snapshot.empty) return null
   const docSnap = snapshot.docs[0]
-  const business = { id: docSnap.id, ...docSnap.data() } as Business
-  return business.status === 'approved' ? business : null
+  return { id: docSnap.id, ...docSnap.data() } as Business
 }

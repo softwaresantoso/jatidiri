@@ -20,7 +20,11 @@ export const ROUTES = {
   unauthorized: '/unauthorized',
   sellerDashboard: '/pelaku/dashboard',
   sellerStore: '/pelaku/toko',
+  sellerProducts: '/pelaku/produk',
+  sellerProductNew: '/pelaku/produk/baru',
+  sellerProductEdit: (id: string) => `/pelaku/produk/${id}/edit`,
   adminDashboard: '/admin/dashboard',
   adminApplications: '/admin/pelaku',
   adminApplicationDetail: (id: string) => `/admin/pelaku/${id}`,
+  adminProducts: '/admin/produk',
 } as const

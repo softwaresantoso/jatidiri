@@ -74,7 +74,31 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // Default deny — collection lain (products, orders, payments, dst.)
+    // PRODUCTS — publik hanya baca yang approved. Owner boleh edit rutin
+    // (harga/stok/deskripsi) tanpa perlu moderasi ulang SELAMA status
+    // tidak berubah; submit produk baru/revisi (draft/rejected->submitted)
+    // atau arsipkan (->archived) juga boleh. Owner TIDAK bisa self-approve
+    // (status->approved cuma lewat isAdmin()).
+    match /products/{productId} {
+      allow read: if resource.data.status == 'approved' ||
+        (isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdmin()));
+      allow create: if isSignedIn() &&
+        request.resource.data.ownerId == request.auth.uid &&
+        request.resource.data.status == 'draft';
+      allow update: if isAdmin() ||
+        (isSignedIn() && resource.data.ownerId == request.auth.uid &&
+          !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['ownerId', 'businessId']) &&
+          (
+            request.resource.data.status == resource.data.status ||
+            (resource.data.status in ['draft', 'rejected'] &&
+              request.resource.data.status == 'submitted') ||
+            request.resource.data.status == 'archived'
+          ));
+      allow delete: if isAdmin();
+    }
+
+    // Default deny — collection lain (orders, payments, dst.)
     // ditambahkan eksplisit di fase saat fiturnya dibangun.
     match /{document=**} {
       allow read, write: if false;

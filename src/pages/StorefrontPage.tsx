@@ -2,22 +2,31 @@ import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { getBusinessBySlug } from '@/services/businesses'
 import { getActiveCategories } from '@/services/categories'
+import { getApprovedProductsByBusiness } from '@/services/products'
 import type { Business } from '@/types/business'
 import type { Category } from '@/types/category'
+import type { Product } from '@/types/product'
 
 export default function StorefrontPage() {
   const { slug } = useParams<{ slug: string }>()
   const [business, setBusiness] = useState<Business | null | undefined>(undefined)
   const [categories, setCategories] = useState<Category[]>([])
+  const [products, setProducts] = useState<Product[]>([])
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     if (!slug) return
-    Promise.all([getBusinessBySlug(slug), getActiveCategories()])
-      .then(([biz, cats]) => {
+    getBusinessBySlug(slug)
+      .then(async (biz) => {
         setBusiness(biz)
+        if (!biz) return
+        document.title = `${biz.businessName} — JATIDIRI`
+        const [cats, prods] = await Promise.all([
+          getActiveCategories(),
+          getApprovedProductsByBusiness(biz.id),
+        ])
         setCategories(cats)
-        if (biz) document.title = `${biz.businessName} — JATIDIRI`
+        setProducts(prods)
       })
       .catch((err: unknown) => {
         console.error('Gagal memuat toko:', err)
@@ -99,8 +108,29 @@ export default function StorefrontPage() {
         </div>
       )}
 
-      <div className="mt-8 rounded-md border border-dashed border-black/20 p-4 text-center text-ink/40">
-        Belum ada produk — menyusul Phase 9.
+      <div className="mt-8">
+        <h2 className="text-sm font-medium text-ink/60">Produk</h2>
+        {products.length === 0 ? (
+          <div className="mt-2 rounded-md border border-dashed border-black/20 p-4 text-center text-ink/40">
+            Belum ada produk aktif dari toko ini.
+          </div>
+        ) : (
+          <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
+            {products.map((p) => (
+              <div key={p.id} className="rounded-md border border-black/10 p-3">
+                {p.images?.[0] && (
+                  <img
+                    src={p.images[0]}
+                    alt={p.name}
+                    className="h-24 w-full rounded object-cover"
+                  />
+                )}
+                <p className="mt-2 truncate text-sm font-medium">{p.name}</p>
+                <p className="text-sm text-ink/60">Rp{p.price.toLocaleString('id-ID')}</p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   )

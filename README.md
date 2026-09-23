@@ -46,6 +46,17 @@ pencarian nama + filter kategori, semuanya di client setelah satu fetch),
 `/kategori/:slug`, `/toko/:slug` (storefront publik per usaha), dan Home
 sekarang menampilkan "Pelaku Industri Pilihan". Semua bisa diakses tanpa
 login. Lihat "Catatan teknis Phase 8" di bawah soal keputusan query.
+Phase 9 — Products: selesai (Services & Business Packages menyusul
+sebagai increment terpisah — pattern-nya sama, jadi seharusnya lebih
+cepat). Seller: `/pelaku/produk` (list + tambah/edit/ajukan/arsipkan),
+form single-page (bukan wizard, produk lebih sederhana dari registrasi
+usaha). Admin: `/admin/produk` (moderasi, approve/tolak). Storefront
+sekarang menampilkan produk approved sungguhan. State produk
+disederhanakan jadi 5 (draft/submitted/approved/rejected/archived) dari
+6 di brief asli — 'approved' langsung berarti tampil publik, tidak ada
+state 'published' terpisah. Edit rutin (harga/stok) TIDAK perlu
+moderasi ulang selama status tidak berubah — cuma produk baru/revisi
+yang lewat antrian admin.
 
 ## Tech stack
 
@@ -208,9 +219,9 @@ Ini keputusan sadar untuk menjaga scope tetap terkelola — bukan bug:
 
 ## Fase berikutnya
 
-Phase 9 — Products/services/packages (entity `products`, `services`,
-`businessPackages` + CRUD di dashboard seller, ditampilkan di storefront
-yang sekarang masih placeholder "Belum ada produk").
+Services (entity `services` + CRUD seller + moderasi admin) — struktur
+hampir identik dengan Products, jadi increment ini seharusnya jauh lebih
+cepat. Setelah itu lanjut Phase 10 — Cart.
 
 ## Catatan teknis Phase 8
 
@@ -226,3 +237,17 @@ tidak butuh index baru sama sekali:
   nanti sudah ribuan, ini titik yang perlu diganti (pagination atau
   migrasi ke search engine seperti brief section 27 sarankan).
 - Tidak ada `firestore.indexes.json` baru di fase ini.
+
+**Update (hotfix):** ada kelas bug BARU yang ketahuan lewat testing —
+beda dari bug composite index sebelumnya. `getBusinessBySlug()` awalnya
+cuma filter `slug`, cek `status=='approved'` di kode SETELAH fetch — ini
+gagal untuk pengunjung anonim dengan error "Missing or insufficient
+permissions". Penyebabnya: Firestore menolak SELURUH query (bukan
+menyaring hasilnya) kalau strukturnya bisa saja mengembalikan dokumen
+yang gagal security rule. Beda dengan `get()` dokumen tunggal (rule
+dicek per-dokumen, `getBusinessById`/`getMyBusiness` tidak kena ini).
+**Aturan praktis ke depan:** kalau sebuah query publik/anonim menyasar
+collection yang rule-nya bergantung pada `resource.data` (bukan cuma
+`allow read: if true`), filter yang jadi syarat rule (di sini:
+`status=='approved'`) HARUS ikut ada di query itu sendiri, tidak cukup
+dicek belakangan di kode.

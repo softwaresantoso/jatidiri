@@ -10,9 +10,12 @@ import SellerRegisterPage from '@/pages/SellerRegisterPage'
 import AccountPage from '@/pages/AccountPage'
 import SellerDashboardPage from '@/pages/SellerDashboardPage'
 import SellerStoreProfilePage from '@/pages/SellerStoreProfilePage'
+import SellerProductsPage from '@/pages/SellerProductsPage'
+import SellerProductFormPage from '@/pages/SellerProductFormPage'
 import AdminDashboardPage from '@/pages/AdminDashboardPage'
 import AdminApplicationsListPage from '@/pages/AdminApplicationsListPage'
 import AdminApplicationDetailPage from '@/pages/AdminApplicationDetailPage'
+import AdminProductsListPage from '@/pages/AdminProductsListPage'
 import UnauthorizedPage from '@/pages/UnauthorizedPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 import { RequireRole } from '@/components/auth/RequireRole'
@@ -59,6 +62,30 @@ export default function AppRoutes() {
           }
         />
         <Route
+          path="/pelaku/produk"
+          element={
+            <RequireRole allowedRoles={['seller']}>
+              <SellerProductsPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/pelaku/produk/baru"
+          element={
+            <RequireRole allowedRoles={['seller']}>
+              <SellerProductFormPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/pelaku/produk/:id/edit"
+          element={
+            <RequireRole allowedRoles={['seller']}>
+              <SellerProductFormPage />
+            </RequireRole>
+          }
+        />
+        <Route
           path="/admin/dashboard"
           element={
             <RequireRole allowedRoles={['admin']}>
@@ -79,6 +106,14 @@ export default function AppRoutes() {
           element={
             <RequireRole allowedRoles={['admin']}>
               <AdminApplicationDetailPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/admin/produk"
+          element={
+            <RequireRole allowedRoles={['admin']}>
+              <AdminProductsListPage />
             </RequireRole>
           }
         />

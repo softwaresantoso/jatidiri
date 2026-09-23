@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { getMyOpenApplication } from '@/services/businessApplications'
 import { getBusinessById } from '@/services/businesses'
+import { getMyProducts } from '@/services/products'
 import type { BusinessApplication, Business } from '@/types/business'
 import { ROUTES } from '@/constants/routes'
 
@@ -13,6 +14,7 @@ export default function SellerDashboardPage() {
   const [view, setView] = useState<ViewState>('loading')
   const [application, setApplication] = useState<BusinessApplication | null>(null)
   const [business, setBusiness] = useState<Business | null>(null)
+  const [productCount, setProductCount] = useState(0)
 
   useEffect(() => {
     if (!firebaseUser) return
@@ -29,8 +31,12 @@ export default function SellerDashboardPage() {
       } else if (app.status === 'rejected') {
         setView('rejected')
       } else if (app.status === 'approved' && app.businessId) {
-        const biz = await getBusinessById(app.businessId)
+        const [biz, products] = await Promise.all([
+          getBusinessById(app.businessId),
+          getMyProducts(firebaseUser.uid),
+        ])
         setBusiness(biz)
+        setProductCount(products.filter((p) => p.status !== 'archived').length)
         setView('active')
       }
     })
@@ -105,13 +111,13 @@ export default function SellerDashboardPage() {
       </div>
 
       <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-4">
-        <StatCard label="Total Produk" value="0" note="Phase 9" />
+        <StatCard label="Total Produk" value={String(productCount)} note="" />
         <StatCard label="Order Pending" value="0" note="Phase 10+" />
         <StatCard label="Estimasi Pendapatan" value="Rp0" note="Phase 10+" />
         <StatCard label="Rating Toko" value="-" note="Phase 16" />
       </div>
       <p className="mt-2 text-xs text-ink/50">
-        Angka di atas masih placeholder — baru terisi sungguhan setelah fitur produk & order
+        Total Produk sudah angka sungguhan. Sisanya masih placeholder — menunggu fitur order
         dibangun.
       </p>
 
@@ -123,9 +129,14 @@ export default function SellerDashboardPage() {
           <p className="font-medium">Profil Toko</p>
           <p className="text-sm text-ink/60">Edit logo, deskripsi, kontak, sosial media</p>
         </Link>
-        <ComingSoonCard title="Kelola Produk" note="Phase 9" />
-        <ComingSoonCard title="Kelola Jasa" note="Phase 9" />
-        <ComingSoonCard title="Kelola Paket Bisnis" note="Phase 9" />
+        <Link
+          to={ROUTES.sellerProducts}
+          className="rounded-md border border-black/10 p-4 hover:bg-black/5"
+        >
+          <p className="font-medium">Kelola Produk</p>
+          <p className="text-sm text-ink/60">{productCount} produk</p>
+        </Link>
+        <ComingSoonCard title="Kelola Jasa" note="menyusul" />
         <ComingSoonCard title="Kelola Pesanan" note="Phase 10+" />
       </div>
     </div>
