@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { Link, useParams } from 'react-router-dom'
 import { getBusinessBySlug } from '@/services/businesses'
 import { getActiveCategories } from '@/services/categories'
 import { getApprovedProductsByBusiness } from '@/services/products'
 import { getApprovedServicesByBusiness } from '@/services/services'
+import { ROUTES } from '@/constants/routes'
 import type { Business } from '@/types/business'
 import type { Category } from '@/types/category'
 import type { Product } from '@/types/product'
@@ -122,7 +123,11 @@ export default function StorefrontPage() {
         ) : (
           <div className="mt-2 grid grid-cols-2 gap-3 sm:grid-cols-3">
             {products.map((p) => (
-              <div key={p.id} className="rounded-md border border-black/10 p-3">
+              <Link
+                key={p.id}
+                to={ROUTES.product(p.slug)}
+                className="rounded-md border border-black/10 p-3 hover:bg-black/5"
+              >
                 {p.images?.[0] && (
                   <img
                     src={p.images[0]}
@@ -132,7 +137,7 @@ export default function StorefrontPage() {
                 )}
                 <p className="mt-2 truncate text-sm font-medium">{p.name}</p>
                 <p className="text-sm text-ink/60">Rp{p.price.toLocaleString('id-ID')}</p>
-              </div>
+              </Link>
             ))}
           </div>
         )}

@@ -4,6 +4,8 @@ import HomePage from '@/pages/HomePage'
 import ExplorePage from '@/pages/ExplorePage'
 import CategoryPage from '@/pages/CategoryPage'
 import StorefrontPage from '@/pages/StorefrontPage'
+import ProductDetailPage from '@/pages/ProductDetailPage'
+import CartPage from '@/pages/CartPage'
 import LoginPage from '@/pages/LoginPage'
 import RegisterPage from '@/pages/RegisterPage'
 import SellerRegisterPage from '@/pages/SellerRegisterPage'
@@ -32,6 +34,7 @@ export default function AppRoutes() {
         <Route path="/explore" element={<ExplorePage />} />
         <Route path="/kategori/:slug" element={<CategoryPage />} />
         <Route path="/toko/:slug" element={<StorefrontPage />} />
+        <Route path="/produk/:slug" element={<ProductDetailPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/register" element={<RegisterPage />} />
         <Route path="/pelaku/daftar" element={<SellerRegisterPage />} />
@@ -43,6 +46,14 @@ export default function AppRoutes() {
           element={
             <RequireRole>
               <AccountPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/cart"
+          element={
+            <RequireRole>
+              <CartPage />
             </RequireRole>
           }
         />

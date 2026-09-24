@@ -58,6 +58,15 @@ TIDAK perlu moderasi ulang selama status tidak berubah — cuma
 produk/jasa baru/revisi yang lewat antrian admin. Services dibangun
 sebagai copy hampir 1:1 dari pattern Products (collection, rules, UI)
 — tidak ada kejutan teknis baru di increment ini.
+Phase 10 — Cart: selesai. `/produk/:slug` (halaman detail produk baru —
+sebelumnya cuma ada kartu di storefront tanpa link ke mana pun) dengan
+"Tambah ke Keranjang", dan `/cart`. Aturan single-vendor dari brief
+section 28/77 diterapkan: nambah produk dari toko lain saat keranjang
+sudah terisi memicu dialog konfirmasi "kosongkan atau batal", bukan
+otomatis jadi multi-vendor. `CartContext` baru (real-time via
+`onSnapshot`) dipasang di root App — badge jumlah item di header ikut
+update otomatis. Checkout sengaja masih tombol nonaktif "segera hadir"
+— itu Phase 11.
 
 ## Tech stack
 
@@ -220,10 +229,11 @@ Ini keputusan sadar untuk menjaga scope tetap terkelola — bukan bug:
 
 ## Fase berikutnya
 
-Phase 10 — Cart. Aturan penting dari brief: cart single-vendor saja
-(kalau customer coba tambah produk dari toko lain, tampilkan dialog
-"kosongkan keranjang atau batal" — bukan multi-vendor cart, itu di luar
-MVP).
+Phase 11 — Checkout. Alur: Cart → Customer Information → Shipping →
+Order Summary → Payment Method → Confirm Order. Ini titik pertama kita
+butuh entity `orders`/`orderItems`, dan mulai bersinggungan dengan
+Phase 13 (Shipping) & 14 (Commission) yang datanya perlu di-snapshot ke
+order saat itu juga.
 
 ## Catatan teknis Phase 8
 

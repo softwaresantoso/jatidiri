@@ -1,6 +1,7 @@
 import { Link, Outlet, useNavigate } from 'react-router-dom'
 import { ROUTES } from '@/constants/routes'
 import { useAuth } from '@/contexts/AuthContext'
+import { useCart } from '@/contexts/CartContext'
 import { logOut } from '@/services/auth'
 import type { UserRole } from '@/types'
 
@@ -12,6 +13,7 @@ function dashboardLinkFor(role: UserRole | undefined) {
 
 export default function MainLayout() {
   const { firebaseUser, appUser, loading } = useAuth()
+  const { itemCount } = useCart()
   const navigate = useNavigate()
 
   const handleLogout = async () => {
@@ -28,6 +30,12 @@ export default function MainLayout() {
           </Link>
           <nav className="flex items-center gap-6 text-sm">
             <Link to={ROUTES.explore}>Jelajahi</Link>
+
+            {firebaseUser && (
+              <Link to={ROUTES.cart}>
+                Keranjang{itemCount > 0 ? ` (${itemCount})` : ''}
+              </Link>
+            )}
 
             {loading ? null : firebaseUser ? (
               <div className="flex items-center gap-3">

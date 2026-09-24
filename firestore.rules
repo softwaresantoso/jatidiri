@@ -119,6 +119,13 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // CARTS — satu dokumen per customer (doc ID = uid), cuma pemiliknya
+    // sendiri yang boleh baca/tulis. Sederhana karena tidak ada field
+    // ownerId terpisah untuk dicek — doc ID-nya sendiri sudah uid.
+    match /carts/{uid} {
+      allow read, write: if isSignedIn() && request.auth.uid == uid;
+    }
+
     // Default deny — collection lain (orders, payments, dst.)
     // ditambahkan eksplisit di fase saat fiturnya dibangun.
     match /{document=**} {

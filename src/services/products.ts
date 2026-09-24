@@ -105,6 +105,23 @@ export async function getApprovedProductsByBusiness(businessId: string): Promise
   return snapshot.docs.map((docSnap) => ({ id: docSnap.id, ...docSnap.data() }) as Product)
 }
 
+// Untuk halaman detail produk publik (/produk/:slug). status='approved'
+// WAJIB di query (bukan dicek belakangan) — pelajaran dari bug storefront
+// Phase 8: Firestore menolak seluruh query kalau strukturnya bisa
+// mengembalikan dokumen yang gagal security rule untuk pengunjung anonim.
+export async function getProductBySlug(slug: string): Promise<Product | null> {
+  const q = query(
+    collection(db, 'products'),
+    where('slug', '==', slug),
+    where('status', '==', 'approved'),
+    limit(1),
+  )
+  const snapshot = await getDocs(q)
+  if (snapshot.empty) return null
+  const docSnap = snapshot.docs[0]
+  return { id: docSnap.id, ...docSnap.data() } as Product
+}
+
 // --- Admin ---
 
 // Single filter (status=='submitted') — sengaja tidak pakai 'in' supaya
