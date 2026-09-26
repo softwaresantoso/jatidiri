@@ -1,12 +1,11 @@
 import {
-  addDoc,
   collection,
   doc,
   getDoc,
   getDocs,
-  limit,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
   where,
 } from 'firebase/firestore'
@@ -17,21 +16,11 @@ import type { Service, ServiceFormInput } from '@/types/service'
 // Sama persis polanya dengan services/products.ts — lihat komentar di
 // sana untuk alasan tiap keputusan (query single-filter, dst.).
 
-async function slugExists(slug: string): Promise<boolean> {
-  const q = query(collection(db, 'services'), where('slug', '==', slug), limit(1))
-  const snapshot = await getDocs(q)
-  return !snapshot.empty
-}
-
-async function generateUniqueServiceSlug(name: string): Promise<string> {
-  const base = slugify(name) || 'jasa'
-  let candidate = base
-  let suffix = 2
-  while (await slugExists(candidate)) {
-    candidate = `${base}-${suffix}`
-    suffix++
-  }
-  return candidate
+// Sama seperti products.ts — TIDAK ada query pengecekan slug, langsung
+// turunkan dari ID dokumen yang dijamin unik. Lihat komentar
+// buildProductSlug di services/products.ts untuk alasan lengkapnya.
+function buildServiceSlug(name: string, docId: string): string {
+  return `${slugify(name) || 'jasa'}-${docId.slice(0, 6)}`
 }
 
 // --- Seller ---
@@ -41,8 +30,9 @@ export async function createService(
   ownerId: string,
   data: ServiceFormInput,
 ): Promise<string> {
-  const slug = await generateUniqueServiceSlug(data.name)
-  const ref = await addDoc(collection(db, 'services'), {
+  const ref = doc(collection(db, 'services'))
+  const slug = buildServiceSlug(data.name, ref.id)
+  await setDoc(ref, {
     ...data,
     businessId,
     ownerId,

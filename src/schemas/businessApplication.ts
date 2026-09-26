@@ -69,8 +69,25 @@ export const step4Schema = z.object({
 })
 export type Step4Input = z.infer<typeof step4Schema>
 
+// z.enum di sini HARUS sama persis dengan OfferingType di types/business.ts
+// dan OFFERING_OPTIONS di Step5Offering.tsx — z.array(z.string()) yang
+// dipakai sebelumnya lolos dari deteksi saya karena Zod tidak tahu soal
+// tipe OfferingType di TypeScript; baru ketahuan pas tsc build asli jalan.
 export const step5Schema = z.object({
-  offeringTypes: z.array(z.string()).min(1, 'Pilih minimal satu jenis penawaran'),
+  offeringTypes: z
+    .array(
+      z.enum([
+        'produk',
+        'jasa',
+        'mesin',
+        'peralatan',
+        'paket_bisnis',
+        'produk_custom',
+        'preorder',
+        'lainnya',
+      ]),
+    )
+    .min(1, 'Pilih minimal satu jenis penawaran'),
   offeringDescription: z.string().min(10, 'Deskripsi minimal 10 karakter'),
 })
 export type Step5Input = z.infer<typeof step5Schema>

@@ -1,5 +1,4 @@
 import {
-  addDoc,
   collection,
   doc,
   getDoc,
@@ -7,6 +6,7 @@ import {
   limit,
   query,
   serverTimestamp,
+  setDoc,
   updateDoc,
   where,
 } from 'firebase/firestore'
@@ -14,21 +14,14 @@ import { db } from '@/lib/firebase'
 import { slugify } from '@/utils/slugify'
 import type { Product, ProductFormInput } from '@/types/product'
 
-async function slugExists(slug: string): Promise<boolean> {
-  const q = query(collection(db, 'products'), where('slug', '==', slug), limit(1))
-  const snapshot = await getDocs(q)
-  return !snapshot.empty
-}
-
-async function generateUniqueProductSlug(name: string): Promise<string> {
-  const base = slugify(name) || 'produk'
-  let candidate = base
-  let suffix = 2
-  while (await slugExists(candidate)) {
-    candidate = `${base}-${suffix}`
-    suffix++
-  }
-  return candidate
+// Generate ID dokumen dulu (dijamin unik oleh Firestore), lalu turunkan
+// slug darinya — TIDAK ada query pengecekan slug ke produk lain sama
+// sekali. Ini sengaja menghindari bug kelas Phase 8: query 'slug'=='x'
+// ke SEMUA produk bisa kena tolak permission kalau ada produk draft
+// milik seller lain yang slug-nya kebetulan sama, karena requester
+// (seller ini) bukan admin/owner dokumen itu.
+function buildProductSlug(name: string, docId: string): string {
+  return `${slugify(name) || 'produk'}-${docId.slice(0, 6)}`
 }
 
 // --- Seller ---
@@ -38,8 +31,9 @@ export async function createProduct(
   ownerId: string,
   data: ProductFormInput,
 ): Promise<string> {
-  const slug = await generateUniqueProductSlug(data.name)
-  const ref = await addDoc(collection(db, 'products'), {
+  const ref = doc(collection(db, 'products'))
+  const slug = buildProductSlug(data.name, ref.id)
+  await setDoc(ref, {
     ...data,
     businessId,
     ownerId,
