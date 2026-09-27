@@ -1,11 +1,14 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCart } from '@/contexts/CartContext'
 import { removeCartItem, updateItemQuantity } from '@/services/carts'
+import { ROUTES } from '@/constants/routes'
 
 export default function CartPage() {
   const { firebaseUser } = useAuth()
   const { cart, loading } = useCart()
+  const navigate = useNavigate()
   const [busyProductId, setBusyProductId] = useState<string | null>(null)
 
   const subtotal = cart.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
@@ -76,12 +79,9 @@ export default function CartPage() {
             <span className="text-lg font-semibold">Rp{subtotal.toLocaleString('id-ID')}</span>
           </div>
 
-          <button disabled className="btn-primary mt-4 opacity-50">
-            Checkout — segera hadir
+          <button onClick={() => navigate(ROUTES.checkout)} className="btn-primary mt-4">
+            Checkout
           </button>
-          <p className="mt-2 text-xs text-ink/50">
-            Alur checkout & pembayaran manual transfer menyusul di Phase 11-12.
-          </p>
         </>
       )}
     </section>

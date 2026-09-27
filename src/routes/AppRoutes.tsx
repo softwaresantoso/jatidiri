@@ -6,6 +6,7 @@ import CategoryPage from '@/pages/CategoryPage'
 import StorefrontPage from '@/pages/StorefrontPage'
 import ProductDetailPage from '@/pages/ProductDetailPage'
 import CartPage from '@/pages/CartPage'
+import CheckoutPage from '@/pages/CheckoutPage'
 import LoginPage from '@/pages/LoginPage'
 import RegisterPage from '@/pages/RegisterPage'
 import SellerRegisterPage from '@/pages/SellerRegisterPage'
@@ -54,6 +55,14 @@ export default function AppRoutes() {
           element={
             <RequireRole>
               <CartPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/checkout"
+          element={
+            <RequireRole>
+              <CheckoutPage />
             </RequireRole>
           }
         />
