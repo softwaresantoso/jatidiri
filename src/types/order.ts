@@ -1,5 +1,7 @@
 import type { Timestamp } from 'firebase/firestore'
 
+// Disederhanakan dari state list di brief section 33 — dropped
+// ready_to_ship/delivered/rejected/refunded untuk MVP.
 export type OrderStatus =
   | 'pending_payment'
   | 'payment_submitted'
@@ -32,11 +34,15 @@ export interface Order {
   items: OrderItem[]
   subtotal: number
   shippingCost: number
+  // Snapshot rate & amount SAAT order dibuat (brief section 31).
   commissionRate: number
   commissionAmount: number
   total: number
   shipping: ShippingInfo
   status: OrderStatus
+  // Phase 12 — pembayaran manual transfer
+  paymentProofUrl?: string
+  paymentRejectionReason?: string
   createdAt: Timestamp
   updatedAt: Timestamp
 }

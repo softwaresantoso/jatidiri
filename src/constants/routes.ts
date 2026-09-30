@@ -31,4 +31,5 @@ export const ROUTES = {
   adminApplicationDetail: (id: string) => `/admin/pelaku/${id}`,
   adminProducts: '/admin/produk',
   adminServices: '/admin/jasa',
+  adminPayments: '/admin/pembayaran',
 } as const

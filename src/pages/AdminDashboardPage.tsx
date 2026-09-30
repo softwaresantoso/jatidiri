@@ -3,23 +3,54 @@ import { Link } from 'react-router-dom'
 import { getApplicationsForReview } from '@/services/businessApplications'
 import { getProductsForReview } from '@/services/products'
 import { getServicesForReview } from '@/services/services'
+import { getOrdersForPaymentReview } from '@/services/orders'
 import { ROUTES } from '@/constants/routes'
+
+interface QueueCardProps {
+  to: string
+  title: string
+  description: string
+  count: number | null
+}
+
+function QueueCard({ to, title, description, count }: QueueCardProps) {
+  return (
+    <Link
+      to={to}
+      className="flex items-center justify-between rounded-md border border-black/10 p-4 hover:bg-black/5"
+    >
+      <div>
+        <p className="font-medium">{title}</p>
+        <p className="text-sm text-ink/60">{description}</p>
+      </div>
+      {!!count && (
+        <span className="rounded-full bg-brand px-3 py-1 text-sm text-brand-fg">
+          {count} baru
+        </span>
+      )}
+    </Link>
+  )
+}
 
 export default function AdminDashboardPage() {
   const [pendingApps, setPendingApps] = useState<number | null>(null)
   const [pendingProducts, setPendingProducts] = useState<number | null>(null)
   const [pendingServices, setPendingServices] = useState<number | null>(null)
+  const [pendingPayments, setPendingPayments] = useState<number | null>(null)
 
   useEffect(() => {
     getApplicationsForReview()
-      .then((apps) => setPendingApps(apps.length))
+      .then((list) => setPendingApps(list.length))
       .catch(() => setPendingApps(null))
     getProductsForReview()
-      .then((products) => setPendingProducts(products.length))
+      .then((list) => setPendingProducts(list.length))
       .catch(() => setPendingProducts(null))
     getServicesForReview()
-      .then((services) => setPendingServices(services.length))
+      .then((list) => setPendingServices(list.length))
       .catch(() => setPendingServices(null))
+    getOrdersForPaymentReview()
+      .then((list) => setPendingPayments(list.length))
+      .catch(() => setPendingPayments(null))
   }, [])
 
   return (
@@ -27,54 +58,40 @@ export default function AdminDashboardPage() {
       <h1 className="text-2xl font-semibold tracking-tight">Dashboard Admin</h1>
 
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        <Link
+        <QueueCard
           to={ROUTES.adminApplications}
-          className="flex items-center justify-between rounded-md border border-black/10 p-4 hover:bg-black/5"
-        >
-          <div>
-            <p className="font-medium">Pendaftaran Pelaku Industri</p>
-            <p className="text-sm text-ink/60">Review, approve, atau tolak pendaftaran usaha baru</p>
-          </div>
-          {!!pendingApps && (
-            <span className="rounded-full bg-brand px-3 py-1 text-sm text-brand-fg">
-              {pendingApps} baru
-            </span>
-          )}
-        </Link>
-
-        <Link
+          title="Pendaftaran Pelaku Industri"
+          description="Review, approve, atau tolak pendaftaran usaha baru"
+          count={pendingApps}
+        />
+        <QueueCard
           to={ROUTES.adminProducts}
-          className="flex items-center justify-between rounded-md border border-black/10 p-4 hover:bg-black/5"
-        >
-          <div>
-            <p className="font-medium">Moderasi Produk</p>
-            <p className="text-sm text-ink/60">Review produk baru dari seller</p>
-          </div>
-          {!!pendingProducts && (
-            <span className="rounded-full bg-brand px-3 py-1 text-sm text-brand-fg">
-              {pendingProducts} baru
-            </span>
-          )}
-        </Link>
-
-        <Link
+          title="Moderasi Produk"
+          description="Review produk baru dari seller"
+          count={pendingProducts}
+        />
+        <QueueCard
           to={ROUTES.adminServices}
-          className="flex items-center justify-between rounded-md border border-black/10 p-4 hover:bg-black/5"
-        >
-          <div>
-            <p className="font-medium">Moderasi Jasa</p>
-            <p className="text-sm text-ink/60">Review jasa baru dari seller</p>
-          </div>
-          {!!pendingServices && (
-            <span className="rounded-full bg-brand px-3 py-1 text-sm text-brand-fg">
-              {pendingServices} baru
-            </span>
-          )}
-        </Link>
+          title="Moderasi Jasa"
+          description="Review jasa baru dari seller"
+          count={pendingServices}
+        />
+        <QueueCard
+          to={ROUTES.adminPayments}
+          title="Verifikasi Pembayaran"
+          description="Cek bukti transfer dari customer"
+          count={pendingPayments}
+        />
+        <QueueCard
+          to={ROUTES.adminShipping}
+          title="Metode Pengiriman"
+          description="Kelola opsi & biaya pengiriman untuk checkout"
+          count={null}
+        />
       </div>
 
       <p className="mt-6 text-sm text-ink/60">
-        Verifikasi pembayaran dan pengaturan lain menyusul di fase-fase berikutnya.
+        Pengaturan komisi menyusul di fase berikutnya.
       </p>
     </section>
   )

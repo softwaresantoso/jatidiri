@@ -1,4 +1,6 @@
+import { Link } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
+import { ROUTES } from '@/constants/routes'
 
 export default function AccountPage() {
   const { firebaseUser, appUser } = useAuth()
@@ -20,10 +22,14 @@ export default function AccountPage() {
           <dd className="capitalize">{appUser?.role ?? '-'}</dd>
         </div>
       </dl>
-      <p className="mt-6 text-sm text-ink/60">
-        Edit profil, alamat, dan riwayat pesanan menyusul di fase Marketplace
-        &amp; Order.
-      </p>
+
+      <Link
+        to={ROUTES.orders}
+        className="mt-6 block rounded-md border border-black/10 p-4 hover:bg-black/5"
+      >
+        <p className="font-medium">Pesanan Saya</p>
+        <p className="text-sm text-ink/60">Lihat status pesanan & upload bukti pembayaran</p>
+      </Link>
     </section>
   )
 }

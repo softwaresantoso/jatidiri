@@ -1,11 +1,12 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCart } from '@/contexts/CartContext'
 import { createOrder } from '@/services/orders'
 import { clearCart } from '@/services/carts'
-import { SHIPPING_METHODS } from '@/constants/checkout'
+import { getActiveShippingMethods } from '@/services/shippingMethods'
 import { ROUTES } from '@/constants/routes'
+import type { ShippingMethod } from '@/types/shipping'
 
 type Step = 1 | 2 | 3 | 'success'
 
@@ -18,14 +19,28 @@ export default function CheckoutPage() {
   const [recipientName, setRecipientName] = useState(appUser?.displayName ?? '')
   const [phone, setPhone] = useState('')
   const [address, setAddress] = useState('')
-  const [methodId, setMethodId] = useState<(typeof SHIPPING_METHODS)[number]['id']>(SHIPPING_METHODS[0].id,)
+  const [methods, setMethods] = useState<ShippingMethod[]>([])
+  const [methodsLoading, setMethodsLoading] = useState(true)
+  const [methodId, setMethodId] = useState<string | null>(null)
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [orderId, setOrderId] = useState<string | null>(null)
 
+  useEffect(() => {
+    getActiveShippingMethods()
+      .then((list) => {
+        setMethods(list)
+        if (list.length > 0) setMethodId(list[0].id)
+      })
+      .catch((err: unknown) => {
+        console.error('Gagal memuat metode pengiriman:', err)
+      })
+      .finally(() => setMethodsLoading(false))
+  }, [])
+
   const subtotal = cart.items.reduce((sum, i) => sum + i.price * i.quantity, 0)
-  const method = SHIPPING_METHODS.find((m) => m.id === methodId) ?? SHIPPING_METHODS[0]
-  const total = subtotal + method.cost
+  const method = methods.find((m) => m.id === methodId) ?? null
+  const total = subtotal + (method?.cost ?? 0)
 
   if (cartLoading) return <p className="mx-auto max-w-md px-4 py-16 text-ink/60">Memuat...</p>
 
@@ -41,7 +56,7 @@ export default function CheckoutPage() {
   }
 
   const handleConfirm = async () => {
-    if (!firebaseUser || !cart.businessId) return
+    if (!firebaseUser || !cart.businessId || !method) return
     setSubmitting(true)
     setError(null)
     try {
@@ -49,7 +64,7 @@ export default function CheckoutPage() {
         recipientName,
         phone,
         address,
-        method: method.label,
+        method: method.name,
         cost: method.cost,
       })
       await clearCart(firebaseUser.uid)
@@ -67,9 +82,7 @@ export default function CheckoutPage() {
     return (
       <div className="mx-auto max-w-md px-4 py-16">
         <h1 className="text-2xl font-semibold tracking-tight">Pesanan Dibuat</h1>
-        <p className="mt-2 text-ink/70">
-          Pesanan Anda berhasil dibuat dan menunggu pembayaran.
-        </p>
+        <p className="mt-2 text-ink/70">Pesanan Anda berhasil dibuat dan menunggu pembayaran.</p>
         <dl className="mt-4 space-y-1 text-sm">
           <div className="flex justify-between">
             <dt className="text-ink/60">ID Pesanan</dt>
@@ -80,10 +93,12 @@ export default function CheckoutPage() {
             <dd>Rp{total.toLocaleString('id-ID')}</dd>
           </div>
         </dl>
-        <p className="mt-4 text-sm text-ink/50">
-          Instruksi transfer & upload bukti pembayaran menyusul di Phase 12 — untuk sekarang,
-          pesanan tersimpan dengan status "menunggu pembayaran".
-        </p>
+        <button
+          onClick={() => orderId && navigate(ROUTES.order(orderId))}
+          className="btn-primary mt-6"
+        >
+          Lanjut ke Pembayaran
+        </button>
       </div>
     )
   }
@@ -136,7 +151,15 @@ export default function CheckoutPage() {
       {step === 2 && (
         <div className="mt-6 space-y-4">
           <h2 className="font-medium">Pilih Pengiriman</h2>
-          {SHIPPING_METHODS.map((m) => (
+
+          {methodsLoading && <p className="text-sm text-ink/60">Memuat metode pengiriman...</p>}
+          {!methodsLoading && methods.length === 0 && (
+            <p className="text-sm text-red-600">
+              Belum ada metode pengiriman aktif. Hubungi admin JATIDIRI.
+            </p>
+          )}
+
+          {methods.map((m) => (
             <label
               key={m.id}
               className="flex items-center justify-between rounded-md border border-black/10 p-3 text-sm"
@@ -148,23 +171,28 @@ export default function CheckoutPage() {
                   checked={methodId === m.id}
                   onChange={() => setMethodId(m.id)}
                 />
-                {m.label}
+                {m.name}
               </span>
               <span>{m.cost === 0 ? 'Gratis' : `Rp${m.cost.toLocaleString('id-ID')}`}</span>
             </label>
           ))}
+
           <div className="flex gap-3">
             <button onClick={() => setStep(1)} className="flex-1 rounded-md border border-black/20 px-4 py-2">
               Kembali
             </button>
-            <button onClick={() => setStep(3)} className="btn-primary flex-1">
+            <button
+              onClick={() => setStep(3)}
+              disabled={!method}
+              className="btn-primary flex-1"
+            >
               Lanjut
             </button>
           </div>
         </div>
       )}
 
-      {step === 3 && (
+      {step === 3 && method && (
         <div className="mt-6 space-y-4">
           <h2 className="font-medium">Ringkasan Pesanan</h2>
           <div className="rounded-md border border-black/10 p-4 text-sm">
@@ -181,7 +209,7 @@ export default function CheckoutPage() {
               <span>Rp{subtotal.toLocaleString('id-ID')}</span>
             </div>
             <div className="flex justify-between">
-              <span>Ongkir ({method.label})</span>
+              <span>Ongkir ({method.name})</span>
               <span>Rp{method.cost.toLocaleString('id-ID')}</span>
             </div>
             <div className="mt-2 flex justify-between border-t border-black/10 pt-2 font-semibold">
@@ -193,8 +221,8 @@ export default function CheckoutPage() {
           <div className="rounded-md bg-black/5 p-3 text-sm">
             <p className="font-medium">Pembayaran</p>
             <p className="text-ink/70">
-              Transfer bank manual — instruksi rekening &amp; upload bukti pembayaran
-              ditampilkan setelah pesanan dibuat (Phase 12).
+              Transfer bank manual — instruksi rekening &amp; upload bukti pembayaran ditampilkan
+              di halaman pesanan setelah pesanan dibuat.
             </p>
           </div>
 

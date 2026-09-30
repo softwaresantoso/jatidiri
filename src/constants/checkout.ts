@@ -1,7 +1,6 @@
-export const SHIPPING_METHODS = [
-  { id: 'jne', label: 'JNE Reguler', cost: 15000 },
-  { id: 'jnt', label: 'J&T Express', cost: 14000 },
-  { id: 'pickup', label: 'Ambil Sendiri (Gratis)', cost: 0 },
-] as const
+// Shipping methods sekarang di Firestore (collection shippingMethods,
+// dikelola admin di /admin/shipping — Phase 13). Commission rate masih
+// hardcode di sini, jadi admin-configurable-nya itu Phase 14.
 
+// 5% — sama seperti contoh default di brief section 31.
 export const COMMISSION_RATE = 0.05

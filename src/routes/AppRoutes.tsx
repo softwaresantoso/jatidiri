@@ -1,16 +1,20 @@
 import { Route, Routes } from 'react-router-dom'
 import MainLayout from '@/layouts/MainLayout'
+import { RequireRole } from '@/components/auth/RequireRole'
 import HomePage from '@/pages/HomePage'
 import ExplorePage from '@/pages/ExplorePage'
 import CategoryPage from '@/pages/CategoryPage'
 import StorefrontPage from '@/pages/StorefrontPage'
 import ProductDetailPage from '@/pages/ProductDetailPage'
-import CartPage from '@/pages/CartPage'
-import CheckoutPage from '@/pages/CheckoutPage'
 import LoginPage from '@/pages/LoginPage'
 import RegisterPage from '@/pages/RegisterPage'
 import SellerRegisterPage from '@/pages/SellerRegisterPage'
+import UnauthorizedPage from '@/pages/UnauthorizedPage'
 import AccountPage from '@/pages/AccountPage'
+import CartPage from '@/pages/CartPage'
+import CheckoutPage from '@/pages/CheckoutPage'
+import OrdersListPage from '@/pages/OrdersListPage'
+import OrderDetailPage from '@/pages/OrderDetailPage'
 import SellerDashboardPage from '@/pages/SellerDashboardPage'
 import SellerStoreProfilePage from '@/pages/SellerStoreProfilePage'
 import SellerProductsPage from '@/pages/SellerProductsPage'
@@ -22,9 +26,9 @@ import AdminApplicationsListPage from '@/pages/AdminApplicationsListPage'
 import AdminApplicationDetailPage from '@/pages/AdminApplicationDetailPage'
 import AdminProductsListPage from '@/pages/AdminProductsListPage'
 import AdminServicesListPage from '@/pages/AdminServicesListPage'
-import UnauthorizedPage from '@/pages/UnauthorizedPage'
+import AdminPaymentsPage from '@/pages/AdminPaymentsPage'
+import AdminShippingPage from '@/pages/AdminShippingPage'
 import NotFoundPage from '@/pages/NotFoundPage'
-import { RequireRole } from '@/components/auth/RequireRole'
 
 export default function AppRoutes() {
   return (
@@ -66,8 +70,24 @@ export default function AppRoutes() {
             </RequireRole>
           }
         />
+        <Route
+          path="/pesanan"
+          element={
+            <RequireRole>
+              <OrdersListPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/pesanan/:id"
+          element={
+            <RequireRole>
+              <OrderDetailPage />
+            </RequireRole>
+          }
+        />
 
-        {/* Butuh role spesifik */}
+        {/* Butuh role seller */}
         <Route
           path="/pelaku/dashboard"
           element={
@@ -132,6 +152,8 @@ export default function AppRoutes() {
             </RequireRole>
           }
         />
+
+        {/* Butuh role admin */}
         <Route
           path="/admin/dashboard"
           element={
@@ -169,6 +191,22 @@ export default function AppRoutes() {
           element={
             <RequireRole allowedRoles={['admin']}>
               <AdminServicesListPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/admin/pembayaran"
+          element={
+            <RequireRole allowedRoles={['admin']}>
+              <AdminPaymentsPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/admin/shipping"
+          element={
+            <RequireRole allowedRoles={['admin']}>
+              <AdminShippingPage />
             </RequireRole>
           }
         />

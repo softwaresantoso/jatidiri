@@ -36,15 +36,13 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // CATEGORIES — dikelola admin, publik boleh baca (dipakai di landing
-    // page & wizard registrasi tanpa perlu login).
+    // CATEGORIES — dikelola admin, publik boleh baca.
     match /categories/{categoryId} {
       allow read: if true;
       allow write: if isAdmin();
     }
 
     // BUSINESS APPLICATIONS — draft/revisi milik seller sendiri.
-    // Seller tidak bisa loncat status ke approved dari client.
     match /businessApplications/{applicationId} {
       allow read: if isSignedIn() &&
         (resource.data.ownerId == request.auth.uid || isAdmin());
@@ -59,13 +57,10 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // BUSINESSES — publik hanya boleh baca yang approved. Pemilik & admin
-    // boleh baca miliknya kapan pun. Field sensitif (status, verification,
-    // banking, ownerId) tidak boleh diubah lewat path seller.
+    // BUSINESSES — publik hanya boleh baca yang approved.
     match /businesses/{businessId} {
       allow read: if resource.data.status == 'approved' ||
         (isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdmin()));
-      // Dibuat sistem saat application di-approve admin, bukan langsung oleh seller.
       allow create: if isAdmin();
       allow update: if isAdmin() ||
         (isSignedIn() && resource.data.ownerId == request.auth.uid &&
@@ -75,10 +70,7 @@ service cloud.firestore {
     }
 
     // PRODUCTS — publik hanya baca yang approved. Owner boleh edit rutin
-    // (harga/stok/deskripsi) tanpa perlu moderasi ulang SELAMA status
-    // tidak berubah; submit produk baru/revisi (draft/rejected->submitted)
-    // atau arsipkan (->archived) juga boleh. Owner TIDAK bisa self-approve
-    // (status->approved cuma lewat isAdmin()).
+    // tanpa moderasi ulang selama status tidak berubah.
     match /products/{productId} {
       allow read: if resource.data.status == 'approved' ||
         (isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdmin()));
@@ -98,8 +90,7 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // SERVICES — sama persis polanya dengan PRODUCTS (lihat komentar di
-    // sana untuk penjelasan tiap kondisi).
+    // SERVICES — sama persis polanya dengan PRODUCTS.
     match /services/{serviceId} {
       allow read: if resource.data.status == 'approved' ||
         (isSignedIn() && (resource.data.ownerId == request.auth.uid || isAdmin()));
@@ -119,15 +110,44 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
-    // CARTS — satu dokumen per customer (doc ID = uid), cuma pemiliknya
-    // sendiri yang boleh baca/tulis. Sederhana karena tidak ada field
-    // ownerId terpisah untuk dicek — doc ID-nya sendiri sudah uid.
+    // CARTS — satu dokumen per customer (doc ID = uid).
     match /carts/{uid} {
       allow read, write: if isSignedIn() && request.auth.uid == uid;
     }
 
-    // Default deny — collection lain (orders, payments, dst.)
-    // ditambahkan eksplisit di fase saat fiturnya dibangun.
+    // ORDERS — customer bikin order-nya sendiri, lalu boleh update SEKALI
+    // untuk kirim bukti pembayaran (pending_payment -> payment_submitted),
+    // tidak bisa sentuh field harga/item. Verifikasi selanjutnya cuma admin.
+    match /orders/{orderId} {
+      allow read: if isSignedIn() &&
+        (resource.data.customerId == request.auth.uid ||
+         get(/databases/$(database)/documents/businesses/$(resource.data.businessId)).data.ownerId == request.auth.uid ||
+         isAdmin());
+      allow create: if isSignedIn() &&
+        request.resource.data.customerId == request.auth.uid &&
+        request.resource.data.status == 'pending_payment' &&
+        request.resource.data.total ==
+          request.resource.data.subtotal + request.resource.data.shippingCost;
+      allow update: if isAdmin() ||
+        (isSignedIn() && resource.data.customerId == request.auth.uid &&
+          resource.data.status == 'pending_payment' &&
+          request.resource.data.status == 'payment_submitted' &&
+          !request.resource.data.diff(resource.data).affectedKeys()
+            .hasAny(['customerId', 'businessId', 'items', 'subtotal', 'shippingCost',
+                     'commissionRate', 'commissionAmount', 'total', 'shipping', 'createdAt']));
+      allow delete: if false;
+    }
+
+    // SHIPPING METHODS — sama pola dengan CATEGORIES: dikelola admin,
+    // publik boleh baca (dibutuhkan saat checkout, termasuk sebelum
+    // memutuskan checkout). Rule tidak bergantung resource.data sama
+    // sekali, jadi aman dari masalah query-time rules Phase 8/9.
+    match /shippingMethods/{methodId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Default deny — collection lain (payments terpisah kalau ada, dst.)
     match /{document=**} {
       allow read, write: if false;
     }
