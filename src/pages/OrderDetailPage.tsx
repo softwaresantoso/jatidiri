@@ -1,12 +1,13 @@
 import { useEffect, useState } from 'react'
 import { useParams } from 'react-router-dom'
 import { useAuth } from '@/contexts/AuthContext'
-import { getOrderById, submitPaymentProof } from '@/services/orders'
+import { getOrderById, submitPaymentProof, confirmOrderReceived } from '@/services/orders'
 import { FileUploader } from '@/components/ui/FileUploader'
 import { uploadDocument } from '@/lib/cloudinary'
 import { ORDER_STATUS_LABELS } from '@/constants/orderStatus'
 import { PLATFORM_BANK_ACCOUNT } from '@/constants/payment'
 import type { Order } from '@/types/order'
+import OrderStatusTimeline from '@/components/orders/OrderStatusTimeline'
 
 export default function OrderDetailPage() {
   const { id } = useParams<{ id: string }>()
@@ -17,6 +18,7 @@ export default function OrderDetailPage() {
   const [proofUrl, setProofUrl] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [confirming, setConfirming] = useState(false)
 
   const load = () => {
     if (!id) return
@@ -46,6 +48,19 @@ export default function OrderDetailPage() {
     }
   }
 
+  const handleConfirmReceived = async () => {
+    if (!id) return
+    setConfirming(true)
+    try {
+      await confirmOrderReceived(id)
+      load()
+    } catch (err) {
+      console.error('Gagal konfirmasi pesanan diterima:', err)
+    } finally {
+      setConfirming(false)
+    }
+  }
+
   if (error) return <p className="mx-auto max-w-2xl px-4 py-12 text-red-600">{error}</p>
   if (order === undefined) return <p className="mx-auto max-w-2xl px-4 py-12 text-ink/60">Memuat...</p>
   if (order === null) return <p className="mx-auto max-w-2xl px-4 py-12 text-ink/60">Pesanan tidak ditemukan.</p>
@@ -62,6 +77,8 @@ export default function OrderDetailPage() {
           {ORDER_STATUS_LABELS[order.status]}
         </span>
       </p>
+
+      <OrderStatusTimeline status={order.status} />
 
       <div className="mt-6 rounded-md border border-black/10 p-4 text-sm">
         {order.items.map((item) => (
@@ -174,6 +191,38 @@ export default function OrderDetailPage() {
       {order.status === 'payment_verified' && (
         <p className="mt-6 rounded-md bg-green-50 p-4 text-sm text-green-800">
           Pembayaran Anda sudah diverifikasi. Pesanan akan diproses oleh penjual.
+        </p>
+      )}
+          {order.status === 'payment_verified' && (
+        <p className="mt-6 rounded-md bg-green-50 p-4 text-sm text-green-800">
+          Pembayaran Anda sudah diverifikasi. Pesanan akan diproses oleh penjual.
+        </p>
+      )}
+
+      {order.status === 'processing' && (
+        <p className="mt-6 rounded-md bg-black/5 p-4 text-sm text-ink/70">
+          Pesanan Anda sedang diproses oleh penjual.
+        </p>
+      )}
+
+      {order.status === 'shipped' && isCustomer && (
+        <div className="mt-6 rounded-md border border-black/10 p-4">
+          <p className="text-sm text-ink/70">
+            Pesanan sudah dikirim penjual. Konfirmasi setelah barang Anda terima.
+          </p>
+          <button
+            onClick={handleConfirmReceived}
+            disabled={confirming}
+            className="btn-primary mt-4"
+          >
+            {confirming ? 'Memproses...' : 'Konfirmasi Pesanan Diterima'}
+          </button>
+        </div>
+      )}
+
+      {order.status === 'completed' && (
+        <p className="mt-6 rounded-md bg-green-50 p-4 text-sm text-green-800">
+          Pesanan selesai. Terima kasih sudah berbelanja!
         </p>
       )}
     </section>

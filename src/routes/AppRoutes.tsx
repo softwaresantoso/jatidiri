@@ -1,4 +1,5 @@
 import { Route, Routes } from 'react-router-dom'
+import { ROUTES } from '@/constants/routes'
 import MainLayout from '@/layouts/MainLayout'
 import { RequireRole } from '@/components/auth/RequireRole'
 import HomePage from '@/pages/HomePage'
@@ -21,6 +22,8 @@ import SellerProductsPage from '@/pages/SellerProductsPage'
 import SellerProductFormPage from '@/pages/SellerProductFormPage'
 import SellerServicesPage from '@/pages/SellerServicesPage'
 import SellerServiceFormPage from '@/pages/SellerServiceFormPage'
+import SellerOrdersListPage from '@/pages/SellerOrdersListPage'
+import SellerOrderDetailPage from '@/pages/SellerOrderDetailPage'
 import AdminDashboardPage from '@/pages/AdminDashboardPage'
 import AdminApplicationsListPage from '@/pages/AdminApplicationsListPage'
 import AdminApplicationDetailPage from '@/pages/AdminApplicationDetailPage'
@@ -28,6 +31,7 @@ import AdminProductsListPage from '@/pages/AdminProductsListPage'
 import AdminServicesListPage from '@/pages/AdminServicesListPage'
 import AdminPaymentsPage from '@/pages/AdminPaymentsPage'
 import AdminShippingPage from '@/pages/AdminShippingPage'
+import AdminCommissionPage from '@/pages/AdminCommissionPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 
 export default function AppRoutes() {
@@ -128,6 +132,22 @@ export default function AppRoutes() {
             </RequireRole>
           }
         />
+                <Route
+          path={ROUTES.sellerOrders}
+          element={
+            <RequireRole allowedRoles={['seller']}>
+              <SellerOrdersListPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path="/jual/pesanan/:id"
+          element={
+            <RequireRole allowedRoles={['seller']}>
+              <SellerOrderDetailPage />
+            </RequireRole>
+          }
+        />
         <Route
           path="/pelaku/jasa"
           element={
@@ -202,11 +222,19 @@ export default function AppRoutes() {
             </RequireRole>
           }
         />
-        <Route
+                <Route
           path="/admin/shipping"
           element={
             <RequireRole allowedRoles={['admin']}>
               <AdminShippingPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path={ROUTES.adminCommission}
+          element={
+            <RequireRole allowedRoles={['admin']}>
+              <AdminCommissionPage />
             </RequireRole>
           }
         />

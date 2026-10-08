@@ -147,7 +147,13 @@ export default function SellerDashboardPage() {
           <p className="font-medium">Kelola Jasa</p>
           <p className="text-sm text-ink/60">{serviceCount} jasa</p>
         </Link>
-        <ComingSoonCard title="Kelola Pesanan" note="Phase 10+" />
+        <Link
+  to={ROUTES.sellerOrders}
+  className="rounded-md border border-black/10 p-4 hover:bg-black/5"
+>
+  <p className="font-medium">Kelola Pesanan</p>
+  <p className="text-sm text-ink/60">Lihat &amp; proses pesanan masuk</p>
+</Link>
       </div>
     </div>
   )
@@ -159,15 +165,6 @@ function StatCard({ label, value, note }: { label: string; value: string; note: 
       <p className="text-xs text-ink/50">{label}</p>
       <p className="mt-1 text-xl font-semibold">{value}</p>
       <p className="text-xs text-ink/40">{note}</p>
-    </div>
-  )
-}
-
-function ComingSoonCard({ title, note }: { title: string; note: string }) {
-  return (
-    <div className="rounded-md border border-dashed border-black/20 p-4 text-ink/40">
-      <p className="font-medium">{title}</p>
-      <p className="text-sm">Segera hadir — {note}</p>
     </div>
   )
 }

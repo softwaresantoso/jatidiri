@@ -31,6 +31,12 @@ export interface Order {
   id: string
   customerId: string
   businessId: string
+  // Phase 15 — snapshot uid pemilik bisnis saat order dibuat. Dipakai supaya
+  // seller bisa query daftar order miliknya lewat where('sellerId','==',uid)
+  // tanpa rule list-query yang gantung ke get() (lihat catatan rules).
+  // Optional karena order dari Phase 11-14 (sebelum field ini ada) tidak
+  // punya nilai ini.
+  sellerId?: string
   items: OrderItem[]
   subtotal: number
   shippingCost: number

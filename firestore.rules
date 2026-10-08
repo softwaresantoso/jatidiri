@@ -118,23 +118,51 @@ service cloud.firestore {
     // ORDERS — customer bikin order-nya sendiri, lalu boleh update SEKALI
     // untuk kirim bukti pembayaran (pending_payment -> payment_submitted),
     // tidak bisa sentuh field harga/item. Verifikasi selanjutnya cuma admin.
+    // Phase 15: seller boleh baca & majukan status lewat sellerId (field
+    // statis di order, bukan get() ke businesses — supaya query list milik
+    // seller tidak rapuh), dan customer boleh konfirmasi shipped->completed.
     match /orders/{orderId} {
       allow read: if isSignedIn() &&
         (resource.data.customerId == request.auth.uid ||
+         resource.data.sellerId == request.auth.uid ||
          get(/databases/$(database)/documents/businesses/$(resource.data.businessId)).data.ownerId == request.auth.uid ||
          isAdmin());
       allow create: if isSignedIn() &&
         request.resource.data.customerId == request.auth.uid &&
         request.resource.data.status == 'pending_payment' &&
         request.resource.data.total ==
-          request.resource.data.subtotal + request.resource.data.shippingCost;
-      allow update: if isAdmin() ||
-        (isSignedIn() && resource.data.customerId == request.auth.uid &&
-          resource.data.status == 'pending_payment' &&
-          request.resource.data.status == 'payment_submitted' &&
-          !request.resource.data.diff(resource.data).affectedKeys()
-            .hasAny(['customerId', 'businessId', 'items', 'subtotal', 'shippingCost',
-                     'commissionRate', 'commissionAmount', 'total', 'shipping', 'createdAt']));
+          request.resource.data.subtotal + request.resource.data.shippingCost &&
+        (
+          !('sellerId' in request.resource.data) ||
+          request.resource.data.sellerId ==
+            get(/databases/$(database)/documents/businesses/$(request.resource.data.businessId)).data.ownerId
+        );
+      // Customer: kirim bukti pembayaran.
+      allow update: if isSignedIn() && resource.data.customerId == request.auth.uid &&
+        resource.data.status == 'pending_payment' &&
+        request.resource.data.status == 'payment_submitted' &&
+        !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['customerId', 'businessId', 'sellerId', 'items', 'subtotal', 'shippingCost',
+                   'commissionRate', 'commissionAmount', 'total', 'shipping', 'createdAt']);
+      // Customer: konfirmasi pesanan diterima.
+      allow update: if isSignedIn() && resource.data.customerId == request.auth.uid &&
+        resource.data.status == 'shipped' &&
+        request.resource.data.status == 'completed' &&
+        !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['customerId', 'businessId', 'sellerId', 'items', 'subtotal', 'shippingCost',
+                   'commissionRate', 'commissionAmount', 'total', 'shipping', 'createdAt',
+                   'paymentProofUrl', 'paymentRejectionReason']);
+      // Seller: proses & kirim pesanan (payment_verified -> processing -> shipped).
+      allow update: if isSignedIn() && resource.data.sellerId == request.auth.uid &&
+        (
+          (resource.data.status == 'payment_verified' && request.resource.data.status == 'processing') ||
+          (resource.data.status == 'processing' && request.resource.data.status == 'shipped')
+        ) &&
+        !request.resource.data.diff(resource.data).affectedKeys()
+          .hasAny(['customerId', 'businessId', 'sellerId', 'items', 'subtotal', 'shippingCost',
+                   'commissionRate', 'commissionAmount', 'total', 'shipping', 'createdAt',
+                   'paymentProofUrl', 'paymentRejectionReason']);
+      allow update: if isAdmin();
       allow delete: if false;
     }
 
