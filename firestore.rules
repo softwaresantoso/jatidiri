@@ -138,11 +138,16 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // SHIPPING METHODS — sama pola dengan CATEGORIES: dikelola admin,
-    // publik boleh baca (dibutuhkan saat checkout, termasuk sebelum
-    // memutuskan checkout). Rule tidak bergantung resource.data sama
-    // sekali, jadi aman dari masalah query-time rules Phase 8/9.
+    // SHIPPING METHODS — dikelola admin, publik boleh baca (dipakai saat checkout).
     match /shippingMethods/{methodId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // PLATFORM SETTINGS — satu dokumen singleton ("default") berisi komisi
+    // platform saat ini. Publik boleh baca (dibutuhkan saat checkout menghitung
+    // komisi), hanya admin yang boleh mengubah.
+    match /platformSettings/{settingsId} {
       allow read: if true;
       allow write: if isAdmin();
     }
