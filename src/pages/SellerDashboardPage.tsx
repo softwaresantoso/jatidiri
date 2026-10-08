@@ -4,6 +4,7 @@ import { useAuth } from '@/contexts/AuthContext'
 import { getMyOpenApplication } from '@/services/businessApplications'
 import { getBusinessById } from '@/services/businesses'
 import { getMyProducts } from '@/services/products'
+import { getPublishedReviewsForBusiness, getAverageRating } from '@/services/reviews'
 import { getMyServices } from '@/services/services'
 import type { BusinessApplication, Business } from '@/types/business'
 import { ROUTES } from '@/constants/routes'
@@ -17,6 +18,8 @@ export default function SellerDashboardPage() {
   const [business, setBusiness] = useState<Business | null>(null)
   const [productCount, setProductCount] = useState(0)
   const [serviceCount, setServiceCount] = useState(0)
+  const [avgRating, setAvgRating] = useState<number | null>(null)
+  const [reviewCount, setReviewCount] = useState(0)
 
   useEffect(() => {
     if (!firebaseUser) return
@@ -32,15 +35,18 @@ export default function SellerDashboardPage() {
         setView('pending')
       } else if (app.status === 'rejected') {
         setView('rejected')
-      } else if (app.status === 'approved' && app.businessId) {
-        const [biz, products, services] = await Promise.all([
+            } else if (app.status === 'approved' && app.businessId) {
+        const [biz, products, services, reviews] = await Promise.all([
           getBusinessById(app.businessId),
           getMyProducts(firebaseUser.uid),
           getMyServices(firebaseUser.uid),
+          getPublishedReviewsForBusiness(app.businessId),
         ])
         setBusiness(biz)
         setProductCount(products.filter((p) => p.status !== 'archived').length)
         setServiceCount(services.filter((s) => s.status !== 'archived').length)
+        setAvgRating(getAverageRating(reviews))
+        setReviewCount(reviews.length)
         setView('active')
       }
     })
@@ -118,7 +124,11 @@ export default function SellerDashboardPage() {
         <StatCard label="Total Produk" value={String(productCount)} note="" />
         <StatCard label="Order Pending" value="0" note="Phase 10+" />
         <StatCard label="Estimasi Pendapatan" value="Rp0" note="Phase 10+" />
-        <StatCard label="Rating Toko" value="-" note="Phase 16" />
+        <StatCard 
+          label="Rating Toko"
+          value={avgRating !== null ? `${avgRating.toFixed(1)} ★` : '-'}
+          note={reviewCount > 0 ? `${reviewCount} ulasan` : 'Belum ada ulasan'}
+        />
       </div>
       <p className="mt-2 text-xs text-ink/50">
         Total Produk sudah angka sungguhan. Sisanya masih placeholder — menunggu fitur order

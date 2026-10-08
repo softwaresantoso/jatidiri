@@ -180,6 +180,25 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // REVIEWS — Phase 16. ID dokumen == orderId (satu review per order,
+    // dicegah duplikat otomatis oleh Firestore karena create gagal kalau
+    // dokumen sudah ada — tidak perlu query cek duplikat).
+    match /reviews/{orderId} {
+      allow read: if resource.data.status == 'published' || isAdmin() ||
+        (isSignedIn() && resource.data.customerId == request.auth.uid);
+      allow create: if isSignedIn() &&
+        request.resource.data.orderId == orderId &&
+        request.resource.data.customerId == request.auth.uid &&
+        request.resource.data.status == 'published' &&
+        request.resource.data.rating is number &&
+        request.resource.data.rating >= 1 && request.resource.data.rating <= 5 &&
+        get(/databases/$(database)/documents/orders/$(orderId)).data.customerId == request.auth.uid &&
+        get(/databases/$(database)/documents/orders/$(orderId)).data.status == 'completed';
+      // Moderasi (hide/unhide) cuma admin — customer tidak bisa edit review sendiri.
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
+    }
+
     // Default deny — collection lain (payments terpisah kalau ada, dst.)
     match /{document=**} {
       allow read, write: if false;

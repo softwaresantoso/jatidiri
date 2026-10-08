@@ -7,6 +7,9 @@ import { uploadDocument } from '@/lib/cloudinary'
 import { ORDER_STATUS_LABELS } from '@/constants/orderStatus'
 import { PLATFORM_BANK_ACCOUNT } from '@/constants/payment'
 import type { Order } from '@/types/order'
+import { getReviewByOrderId } from '@/services/reviews'
+import ReviewForm from '@/components/reviews/ReviewForm'
+import type { Review } from '@/types/review'
 import OrderStatusTimeline from '@/components/orders/OrderStatusTimeline'
 
 export default function OrderDetailPage() {
@@ -18,12 +21,18 @@ export default function OrderDetailPage() {
   const [proofUrl, setProofUrl] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+  const [review, setReview] = useState<Review | null>(null)
   const [confirming, setConfirming] = useState(false)
 
   const load = () => {
     if (!id) return
     getOrderById(id)
-      .then(setOrder)
+      .then((data) => {
+        setOrder(data)
+        if (data?.status === 'completed') {
+          getReviewByOrderId(id).then(setReview).catch(console.error)
+        }
+      })
       .catch((err: unknown) => {
         console.error('Gagal memuat pesanan:', err)
         setError('Pesanan tidak ditemukan, atau Anda tidak punya akses ke pesanan ini.')
@@ -193,11 +202,6 @@ export default function OrderDetailPage() {
           Pembayaran Anda sudah diverifikasi. Pesanan akan diproses oleh penjual.
         </p>
       )}
-          {order.status === 'payment_verified' && (
-        <p className="mt-6 rounded-md bg-green-50 p-4 text-sm text-green-800">
-          Pembayaran Anda sudah diverifikasi. Pesanan akan diproses oleh penjual.
-        </p>
-      )}
 
       {order.status === 'processing' && (
         <p className="mt-6 rounded-md bg-black/5 p-4 text-sm text-ink/70">
@@ -220,10 +224,27 @@ export default function OrderDetailPage() {
         </div>
       )}
 
-      {order.status === 'completed' && (
-        <p className="mt-6 rounded-md bg-green-50 p-4 text-sm text-green-800">
-          Pesanan selesai. Terima kasih sudah berbelanja!
-        </p>
+            {order.status === 'completed' && (
+        <>
+          <p className="mt-6 rounded-md bg-green-50 p-4 text-sm text-green-800">
+            Pesanan selesai. Terima kasih sudah berbelanja!
+          </p>
+
+          {isCustomer &&
+            (review ? (
+              <p className="mt-4 text-sm text-ink/60">
+                Anda sudah memberi ulasan untuk pesanan ini. Terima kasih!
+              </p>
+            ) : (
+              <ReviewForm
+                orderId={order.id}
+                businessId={order.businessId}
+                customerId={order.customerId}
+                customerName={firebaseUser?.displayName || 'Pembeli'}
+                onSubmitted={load}
+              />
+            ))}
+        </>
       )}
     </section>
   )

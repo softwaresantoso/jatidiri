@@ -32,6 +32,7 @@ import AdminServicesListPage from '@/pages/AdminServicesListPage'
 import AdminPaymentsPage from '@/pages/AdminPaymentsPage'
 import AdminShippingPage from '@/pages/AdminShippingPage'
 import AdminCommissionPage from '@/pages/AdminCommissionPage'
+import AdminReviewsPage from '@/pages/AdminReviewsPage'
 import NotFoundPage from '@/pages/NotFoundPage'
 
 export default function AppRoutes() {
@@ -235,6 +236,14 @@ export default function AppRoutes() {
           element={
             <RequireRole allowedRoles={['admin']}>
               <AdminCommissionPage />
+            </RequireRole>
+          }
+        />
+        <Route
+          path={ROUTES.adminReviews}
+          element={
+            <RequireRole allowedRoles={['admin']}>
+              <AdminReviewsPage />
             </RequireRole>
           }
         />
