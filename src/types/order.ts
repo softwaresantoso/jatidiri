@@ -49,6 +49,11 @@ export interface Order {
   // Phase 12 — pembayaran manual transfer
   paymentProofUrl?: string
   paymentRejectionReason?: string
+  // Pasca-MVP — pencairan dana ke seller. Diisi admin lewat
+  // services/payouts.ts createPayout(); kalau sudah ada, order ini tidak
+  // lagi dianggap "belum dicairkan" di AdminPayoutsPage.
+  payoutId?: string
+  payoutAt?: Timestamp
   createdAt: Timestamp
   updatedAt: Timestamp
 }

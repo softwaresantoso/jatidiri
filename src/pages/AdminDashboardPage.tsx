@@ -82,17 +82,25 @@ export default function AdminDashboardPage() {
           description="Cek bukti transfer dari customer"
           count={pendingPayments}
         />
-        <QueueCard
+                <QueueCard
           to={ROUTES.adminShipping}
           title="Metode Pengiriman"
           description="Kelola opsi & biaya pengiriman untuk checkout"
           count={null}
         />
+        <QueueCard
+          to={ROUTES.adminCommission}
+          title="Komisi Platform"
+          description="Atur persentase komisi yang berlaku untuk order baru"
+          count={null}
+        />
+        <QueueCard
+          to={ROUTES.adminReviews}
+          title="Moderasi Ulasan"
+          description="Sembunyikan atau tampilkan ulasan dari customer"
+          count={null}
+        />
       </div>
-
-      <p className="mt-6 text-sm text-ink/60">
-        Pengaturan komisi menyusul di fase berikutnya.
-      </p>
     </section>
   )
 }
