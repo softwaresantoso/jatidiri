@@ -4,11 +4,16 @@ import { getBusinessById } from '@/services/businesses'
 import { createPayout, getAllPayouts } from '@/services/payouts'
 import type { Order } from '@/types/order'
 import type { Payout } from '@/types/payout'
+import type { BusinessBanking } from '@/types/business'
 
 interface SellerBalance {
   sellerId: string
   businessId: string
   businessName: string
+  // Data rekening dari businesses/{id}.banking (diisi seller lewat wizard
+  // pendaftaran Phase 5). Optional karena businesses lama / data tidak
+  // lengkap bisa saja belum punya ini.
+  banking?: BusinessBanking
   orderIds: string[]
   amount: number
 }
@@ -40,16 +45,23 @@ export default function AdminPayoutsPage() {
         grouped.set(key, list)
       }
 
-      const businessNameCache = new Map<string, string>()
+      // Cache per businessId supaya tidak fetch berkali-kali kalau satu
+      // seller punya banyak order. Simpan businessName + banking sekaligus
+      // (banking diisi seller lewat wizard pendaftaran, bisa saja kosong
+      // untuk business lama / belum lengkap).
+      const businessCache = new Map<string, { businessName: string; banking?: BusinessBanking }>()
       const result: SellerBalance[] = []
 
       for (const [sellerId, sellerOrders] of grouped) {
         const businessId = sellerOrders[0].businessId
-        let businessName = businessNameCache.get(businessId)
-        if (!businessName) {
+        let businessInfo = businessCache.get(businessId)
+        if (!businessInfo) {
           const biz = await getBusinessById(businessId)
-          businessName = biz?.businessName ?? 'Toko tidak ditemukan'
-          businessNameCache.set(businessId, businessName)
+          businessInfo = {
+            businessName: biz?.businessName ?? 'Toko tidak ditemukan',
+            banking: biz?.banking,
+          }
+          businessCache.set(businessId, businessInfo)
         }
         const amount = sellerOrders.reduce(
           (sum, o) => sum + (o.total - o.commissionAmount),
@@ -58,7 +70,8 @@ export default function AdminPayoutsPage() {
         result.push({
           sellerId,
           businessId,
-          businessName,
+          businessName: businessInfo.businessName,
+          banking: businessInfo.banking,
           orderIds: sellerOrders.map((o) => o.id),
           amount,
         })
@@ -136,6 +149,29 @@ export default function AdminPayoutsPage() {
               <p className="text-sm text-gray-500">
                 {balance.orderIds.length} pesanan · Rp{balance.amount.toLocaleString('id-ID')}
               </p>
+
+              {balance.banking?.bankName &&
+              balance.banking?.accountNumber &&
+              balance.banking?.accountHolderName ? (
+                <div className="mt-3 rounded-md bg-gray-50 px-3 py-2 text-sm">
+                  <p className="text-gray-700">
+                    <span className="font-medium">{balance.banking.bankName}</span> ·{' '}
+                    {balance.banking.accountNumber}
+                  </p>
+                  <p className="text-gray-500">
+                    a.n. {balance.banking.accountHolderName}
+                    {balance.banking.holderDiffersFromOwner && (
+                      <span className="ml-1 text-amber-600">
+                        (beda dengan nama pemilik usaha)
+                      </span>
+                    )}
+                  </p>
+                </div>
+              ) : (
+                <p className="mt-3 rounded-md bg-amber-50 px-3 py-2 text-sm text-amber-700">
+                  Data rekening belum lengkap — cek profil usaha seller sebelum transfer.
+                </p>
+              )}
 
               <input
                 type="text"
