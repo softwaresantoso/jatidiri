@@ -138,6 +138,16 @@ export async function rejectPayment(orderId: string, reason: string) {
   })
 }
 
+// --- Admin: rekap komisi (tambahan setelah Phase 14) ---
+
+// Tanpa filter sama sekali — rule-nya punya cabang isAdmin() yang tidak
+// gantung ke data dokumen, jadi aman buat list query penuh (pola sama
+// seperti getAllReviews di services/reviews.ts).
+export async function getAllOrders(): Promise<Order[]> {
+  const snapshot = await getDocs(collection(db, 'orders'))
+  return snapshot.docs.map((d) => ({ id: d.id, ...d.data() }) as Order)
+}
+
 // --- Seller: dashboard order (Phase 15) ---
 
 // where('sellerId','==',businessOwnerUid) — filter statis, match langsung

@@ -5,6 +5,18 @@ import {
   updateCommissionRate,
   DEFAULT_COMMISSION_RATE,
 } from '@/services/platformSettings'
+import { getAllOrders } from '@/services/orders'
+import type { OrderStatus } from '@/types/order'
+
+// Komisi dianggap "terkumpul" cuma untuk order yang pembayarannya sudah
+// terverifikasi admin — pending_payment/payment_submitted belum tentu jadi
+// uang sungguhan, dan cancelled jelas bukan.
+const CONFIRMED_STATUSES: OrderStatus[] = [
+  'payment_verified',
+  'processing',
+  'shipped',
+  'completed',
+]
 
 export default function AdminCommissionPage() {
   const [loading, setLoading] = useState(true)
@@ -13,6 +25,11 @@ export default function AdminCommissionPage() {
   const [currentRate, setCurrentRate] = useState<number>(DEFAULT_COMMISSION_RATE)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
+
+  const [reportLoading, setReportLoading] = useState(true)
+  const [confirmedOrderCount, setConfirmedOrderCount] = useState(0)
+  const [totalGmv, setTotalGmv] = useState(0)
+  const [totalCommission, setTotalCommission] = useState(0)
 
   useEffect(() => {
     let isMounted = true
@@ -33,7 +50,23 @@ export default function AdminCommissionPage() {
       }
     }
 
+    async function loadReport() {
+      try {
+        const orders = await getAllOrders()
+        if (!isMounted) return
+        const confirmed = orders.filter((o) => CONFIRMED_STATUSES.includes(o.status))
+        setConfirmedOrderCount(confirmed.length)
+        setTotalGmv(confirmed.reduce((sum, o) => sum + o.subtotal, 0))
+        setTotalCommission(confirmed.reduce((sum, o) => sum + o.commissionAmount, 0))
+      } catch (err) {
+        console.error(err)
+      } finally {
+        if (isMounted) setReportLoading(false)
+      }
+    }
+
     loadSettings()
+    loadReport()
     return () => {
       isMounted = false
     }
@@ -118,6 +151,42 @@ export default function AdminCommissionPage() {
           {saving ? 'Menyimpan...' : 'Simpan Komisi'}
         </button>
       </form>
+
+      <div className="mt-8">
+        <h2 className="mb-3 text-lg font-semibold text-gray-900">
+          Akumulasi Komisi
+        </h2>
+        <p className="mb-3 text-xs text-gray-500">
+          Dihitung dari order yang pembayarannya sudah terverifikasi (status
+          diproses, dikirim, atau selesai) — order yang masih menunggu
+          pembayaran atau dibatalkan tidak dihitung.
+        </p>
+
+        {reportLoading ? (
+          <p className="text-sm text-gray-500">Memuat rekap...</p>
+        ) : (
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+            <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+              <p className="text-xs text-gray-500">Jumlah Order</p>
+              <p className="mt-1 text-xl font-semibold text-gray-900">
+                {confirmedOrderCount}
+              </p>
+            </div>
+            <div className="rounded-lg border border-gray-200 bg-white p-4 shadow-sm">
+              <p className="text-xs text-gray-500">Total Penjualan (GMV)</p>
+              <p className="mt-1 text-xl font-semibold text-gray-900">
+                Rp{totalGmv.toLocaleString('id-ID')}
+              </p>
+            </div>
+            <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 shadow-sm">
+              <p className="text-xs text-blue-700">Total Komisi Terkumpul</p>
+              <p className="mt-1 text-xl font-semibold text-blue-900">
+                Rp{totalCommission.toLocaleString('id-ID')}
+              </p>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   )
 }
