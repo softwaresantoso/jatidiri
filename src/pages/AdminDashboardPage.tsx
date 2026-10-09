@@ -100,6 +100,12 @@ export default function AdminDashboardPage() {
           description="Sembunyikan atau tampilkan ulasan dari customer"
           count={null}
         />
+        <QueueCard
+          to={ROUTES.adminPayouts}
+          title="Pencairan ke Seller"
+          description="Catat transfer manual bagian seller dari order yang selesai"
+          count={null}
+        />
       </div>
     </section>
   )

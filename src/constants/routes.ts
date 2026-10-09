@@ -37,4 +37,5 @@ export const ROUTES = {
   adminShipping: '/admin/shipping',
   adminCommission: '/admin/komisi',
   adminReviews: '/admin/ulasan',
+  adminPayouts: '/admin/pencairan',
 } as const

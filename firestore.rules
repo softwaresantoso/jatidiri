@@ -199,6 +199,13 @@ service cloud.firestore {
       allow delete: if isAdmin();
     }
 
+    // PAYOUTS — pencatatan manual pencairan dana ke seller (pasca-MVP).
+    // Admin-only sepenuhnya; seller belum bisa lihat riwayat pencairannya
+    // sendiri di versi ini.
+    match /payouts/{payoutId} {
+      allow read, write: if isAdmin();
+    }
+
     // Default deny — collection lain (payments terpisah kalau ada, dst.)
     match /{document=**} {
       allow read, write: if false;
