@@ -1,4 +1,5 @@
 import { Link, Outlet, useNavigate } from 'react-router-dom'
+import Logo from '@/components/Logo'
 import { ROUTES } from '@/constants/routes'
 import { useAuth } from '@/contexts/AuthContext'
 import { useCart } from '@/contexts/CartContext'
@@ -25,8 +26,8 @@ export default function MainLayout() {
     <div className="flex min-h-screen flex-col">
       <header className="border-b border-black/10">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
-          <Link to={ROUTES.home} className="text-lg font-semibold tracking-tight">
-            JATIDIRI
+          <Link to={ROUTES.home} aria-label="JATIDIRI — beranda">
+            <Logo />
           </Link>
           <nav className="flex items-center gap-6 text-sm">
             <Link to={ROUTES.explore}>Jelajahi</Link>
@@ -69,7 +70,7 @@ export default function MainLayout() {
       </main>
 
       <footer className="border-t border-black/10 py-6 text-center text-sm text-ink/60">
-        JATIDIRI — Jatikuwung Digital Ragam Industri
+        JATIDIRI — Jatipuro Digital Ragam Industri
       </footer>
     </div>
   )
