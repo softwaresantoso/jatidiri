@@ -1,5 +1,5 @@
-   const logoUrl = 'https://res.cloudinary.com/zvi2yj8n/image/upload/f_auto,q_auto,w_192/jati
-diri/logo'
+const logoUrl =
+  'https://res.cloudinary.com/zvi2yj8n/image/upload/f_auto,q_auto,w_192/jatidiri/logo'
 
 interface LogoProps {
   // Ukuran ikon logo (Tailwind size classes, misal 'h-8 w-8', 'h-10 w-10')
